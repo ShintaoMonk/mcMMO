@@ -1,8 +1,5 @@
 package com.gmail.nossr50.commands.chat;
 
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-
 import com.gmail.nossr50.chat.PartyChatManager;
 import com.gmail.nossr50.config.Config;
 import com.gmail.nossr50.datatypes.chat.ChatMode;
@@ -11,6 +8,8 @@ import com.gmail.nossr50.datatypes.party.PartyFeature;
 import com.gmail.nossr50.locale.LocaleLoader;
 import com.gmail.nossr50.party.PartyManager;
 import com.gmail.nossr50.util.player.UserManager;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 public class PartyChatCommand extends ChatCommand {
     public PartyChatCommand() {
@@ -23,6 +22,10 @@ public class PartyChatCommand extends ChatCommand {
         String message;
 
         if (sender instanceof Player) {
+            //Check if player profile is loaded
+            if(UserManager.getPlayer((Player) sender) == null)
+                return;
+
             party = UserManager.getPlayer((Player) sender).getParty();
 
             if (party == null) {

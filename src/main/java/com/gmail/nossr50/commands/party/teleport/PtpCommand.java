@@ -1,22 +1,13 @@
 package com.gmail.nossr50.commands.party.teleport;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabExecutor;
-import org.bukkit.entity.Player;
-import org.bukkit.util.StringUtil;
-
-import com.gmail.nossr50.mcMMO;
 import com.gmail.nossr50.config.Config;
+import com.gmail.nossr50.config.WorldBlacklist;
 import com.gmail.nossr50.datatypes.party.Party;
 import com.gmail.nossr50.datatypes.party.PartyFeature;
 import com.gmail.nossr50.datatypes.party.PartyTeleportRecord;
 import com.gmail.nossr50.datatypes.player.McMMOPlayer;
 import com.gmail.nossr50.locale.LocaleLoader;
+import com.gmail.nossr50.mcMMO;
 import com.gmail.nossr50.party.PartyManager;
 import com.gmail.nossr50.runnables.items.TeleportationWarmup;
 import com.gmail.nossr50.util.EventUtils;
@@ -25,8 +16,18 @@ import com.gmail.nossr50.util.Permissions;
 import com.gmail.nossr50.util.commands.CommandUtils;
 import com.gmail.nossr50.util.player.UserManager;
 import com.gmail.nossr50.util.skills.SkillUtils;
-
+import com.gmail.nossr50.worldguard.WorldGuardManager;
+import com.gmail.nossr50.worldguard.WorldGuardUtils;
 import com.google.common.collect.ImmutableList;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabExecutor;
+import org.bukkit.entity.Player;
+import org.bukkit.util.StringUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class PtpCommand implements TabExecutor {
     public static final List<String> TELEPORT_SUBCOMMANDS = ImmutableList.of("toggle", "accept", "acceptany", "acceptall");
@@ -43,7 +44,24 @@ public class PtpCommand implements TabExecutor {
 
         Player player = (Player) sender;
 
+        /* WORLD GUARD MAIN FLAG CHECK */
+        if(WorldGuardUtils.isWorldGuardLoaded())
+        {
+            if(!WorldGuardManager.getInstance().hasMainFlag(player))
+                return true;
+        }
+
+        /* WORLD BLACKLIST CHECK */
+        if(WorldBlacklist.isWorldBlacklisted(player.getWorld()))
+            return true;
+
         if (!UserManager.hasPlayerDataKey(player)) {
+            return true;
+        }
+
+        if(UserManager.getPlayer((Player) sender) == null)
+        {
+            sender.sendMessage(LocaleLoader.getString("Profile.PendingLoad"));
             return true;
         }
 
@@ -119,6 +137,12 @@ public class PtpCommand implements TabExecutor {
                 List<String> matches = StringUtil.copyPartialMatches(args[0], TELEPORT_SUBCOMMANDS, new ArrayList<String>(TELEPORT_SUBCOMMANDS.size()));
 
                 if (matches.size() == 0) {
+                    if(UserManager.getPlayer((Player) sender) == null)
+                    {
+                        sender.sendMessage(LocaleLoader.getString("Profile.PendingLoad"));
+                        return ImmutableList.of();
+                    }
+
                     Player player = (Player) sender;
                     McMMOPlayer mcMMOPlayer = UserManager.getPlayer(player);
 
@@ -193,6 +217,18 @@ public class PtpCommand implements TabExecutor {
     }
 
     protected static void handleTeleportWarmup(Player teleportingPlayer, Player targetPlayer) {
+        if(UserManager.getPlayer(targetPlayer) == null)
+        {
+            targetPlayer.sendMessage(LocaleLoader.getString("Profile.PendingLoad"));
+            return;
+        }
+
+        if(UserManager.getPlayer(teleportingPlayer) == null)
+        {
+            teleportingPlayer.sendMessage(LocaleLoader.getString("Profile.PendingLoad"));
+            return;
+        }
+
         McMMOPlayer mcMMOPlayer = UserManager.getPlayer(teleportingPlayer);
         McMMOPlayer mcMMOTarget = UserManager.getPlayer(targetPlayer);
 

@@ -1,25 +1,23 @@
 package com.gmail.nossr50.api;
 
-import java.util.Set;
-import java.util.UUID;
-
-import org.bukkit.entity.Player;
-
-import com.gmail.nossr50.mcMMO;
-import com.gmail.nossr50.api.exceptions.InvalidFormulaTypeException;
-import com.gmail.nossr50.api.exceptions.InvalidPlayerException;
-import com.gmail.nossr50.api.exceptions.InvalidSkillException;
-import com.gmail.nossr50.api.exceptions.InvalidXPGainReasonException;
-import com.gmail.nossr50.api.exceptions.McMMOPlayerNotFoundException;
+import com.gmail.nossr50.api.exceptions.*;
 import com.gmail.nossr50.config.Config;
 import com.gmail.nossr50.config.experience.ExperienceConfig;
 import com.gmail.nossr50.datatypes.experience.FormulaType;
+import com.gmail.nossr50.datatypes.experience.XPGainReason;
+import com.gmail.nossr50.datatypes.experience.XPGainSource;
 import com.gmail.nossr50.datatypes.player.McMMOPlayer;
 import com.gmail.nossr50.datatypes.player.PlayerProfile;
-import com.gmail.nossr50.datatypes.skills.SkillType;
-import com.gmail.nossr50.datatypes.skills.XPGainReason;
+import com.gmail.nossr50.datatypes.skills.PrimarySkillType;
+import com.gmail.nossr50.mcMMO;
 import com.gmail.nossr50.skills.child.FamilyTree;
 import com.gmail.nossr50.util.player.UserManager;
+import org.bukkit.block.BlockState;
+import org.bukkit.entity.Player;
+
+import java.util.ArrayList;
+import java.util.Set;
+import java.util.UUID;
 
 public final class ExperienceAPI {
     private ExperienceAPI() {}
@@ -34,7 +32,7 @@ public final class ExperienceAPI {
      * @return true if this is a valid mcMMO skill
      */
     public static boolean isValidSkillType(String skillType) {
-        return SkillType.getSkill(skillType) != null;
+        return PrimarySkillType.getSkill(skillType) != null;
     }
 
     /**
@@ -48,7 +46,7 @@ public final class ExperienceAPI {
      * @return true if this is a valid, non-child mcMMO skill
      */
     public static boolean isNonChildSkill(String skillType) {
-        SkillType skill = SkillType.getSkill(skillType);
+        PrimarySkillType skill = PrimarySkillType.getSkill(skillType);
 
         return skill != null && !skill.isChildSkill();
     }
@@ -107,11 +105,11 @@ public final class ExperienceAPI {
      */
     public static void addRawXP(Player player, String skillType, float XP, String xpGainReason, boolean isUnshared) {
         if (isUnshared) {
-            getPlayer(player).beginUnsharedXpGain(getSkillType(skillType), XP, getXPGainReason(xpGainReason));
+            getPlayer(player).beginUnsharedXpGain(getSkillType(skillType), XP, getXPGainReason(xpGainReason), XPGainSource.CUSTOM);
             return;
         }
 
-        getPlayer(player).applyXpGain(getSkillType(skillType), XP, getXPGainReason(xpGainReason));
+        getPlayer(player).applyXpGain(getSkillType(skillType), XP, getXPGainReason(xpGainReason), XPGainSource.CUSTOM);
     }
 
     /**
@@ -193,7 +191,7 @@ public final class ExperienceAPI {
      * @throws InvalidXPGainReasonException if the given xpGainReason is not valid
      */
     public static void addMultipliedXP(Player player, String skillType, int XP, String xpGainReason) {
-        getPlayer(player).applyXpGain(getSkillType(skillType), (int) (XP * ExperienceConfig.getInstance().getExperienceGainsGlobalMultiplier()), getXPGainReason(xpGainReason));
+        getPlayer(player).applyXpGain(getSkillType(skillType), (int) (XP * ExperienceConfig.getInstance().getExperienceGainsGlobalMultiplier()), getXPGainReason(xpGainReason), XPGainSource.CUSTOM);
     }
 
     /**
@@ -261,14 +259,14 @@ public final class ExperienceAPI {
      * @throws InvalidXPGainReasonException if the given xpGainReason is not valid
      */
     public static void addModifiedXP(Player player, String skillType, int XP, String xpGainReason, boolean isUnshared) {
-        SkillType skill = getSkillType(skillType);
+        PrimarySkillType skill = getSkillType(skillType);
 
         if (isUnshared) {
-            getPlayer(player).beginUnsharedXpGain(skill, (int) (XP / skill.getXpModifier() * ExperienceConfig.getInstance().getExperienceGainsGlobalMultiplier()), getXPGainReason(xpGainReason));
+            getPlayer(player).beginUnsharedXpGain(skill, (int) (XP / skill.getXpModifier() * ExperienceConfig.getInstance().getExperienceGainsGlobalMultiplier()), getXPGainReason(xpGainReason), XPGainSource.CUSTOM);
             return;
         }
 
-        getPlayer(player).applyXpGain(skill, (int) (XP / skill.getXpModifier() * ExperienceConfig.getInstance().getExperienceGainsGlobalMultiplier()), getXPGainReason(xpGainReason));
+        getPlayer(player).applyXpGain(skill, (int) (XP / skill.getXpModifier() * ExperienceConfig.getInstance().getExperienceGainsGlobalMultiplier()), getXPGainReason(xpGainReason), XPGainSource.CUSTOM);
     }
 
     /**
@@ -285,7 +283,7 @@ public final class ExperienceAPI {
      */
     @Deprecated
     public static void addModifiedXPOffline(String playerName, String skillType, int XP) {
-        SkillType skill = getSkillType(skillType);
+        PrimarySkillType skill = getSkillType(skillType);
 
         addOfflineXP(playerName, skill, (int) (XP / skill.getXpModifier() * ExperienceConfig.getInstance().getExperienceGainsGlobalMultiplier()));
     }
@@ -342,11 +340,11 @@ public final class ExperienceAPI {
      */
     public static void addXP(Player player, String skillType, int XP, String xpGainReason, boolean isUnshared) {
         if (isUnshared) {
-            getPlayer(player).beginUnsharedXpGain(getSkillType(skillType), XP, getXPGainReason(xpGainReason));
+            getPlayer(player).beginUnsharedXpGain(getSkillType(skillType), XP, getXPGainReason(xpGainReason), XPGainSource.CUSTOM);
             return;
         }
 
-        getPlayer(player).beginXpGain(getSkillType(skillType), XP, getXPGainReason(xpGainReason));
+        getPlayer(player).beginXpGain(getSkillType(skillType), XP, getXPGainReason(xpGainReason), XPGainSource.CUSTOM);
     }
 
     /**
@@ -515,7 +513,7 @@ public final class ExperienceAPI {
      * @throws UnsupportedOperationException if the given skill is a child skill
      */
     public static int getXPRemaining(Player player, String skillType) {
-        SkillType skill = getNonChildSkillType(skillType);
+        PrimarySkillType skill = getNonChildSkillType(skillType);
 
         PlayerProfile profile = getPlayer(player).getProfile();
 
@@ -537,7 +535,7 @@ public final class ExperienceAPI {
      */
     @Deprecated
     public static int getOfflineXPRemaining(String playerName, String skillType) {
-        SkillType skill = getNonChildSkillType(skillType);
+        PrimarySkillType skill = getNonChildSkillType(skillType);
         PlayerProfile profile = getOfflineProfile(playerName);
 
         return profile.getXpToLevel(skill) - profile.getSkillXpLevel(skill);
@@ -557,7 +555,7 @@ public final class ExperienceAPI {
      * @throws UnsupportedOperationException if the given skill is a child skill
      */
     public static float getOfflineXPRemaining(UUID uuid, String skillType) {
-        SkillType skill = getNonChildSkillType(skillType);
+        PrimarySkillType skill = getNonChildSkillType(skillType);
         PlayerProfile profile = getOfflineProfile(uuid);
 
         return profile.getXpToLevel(skill) - profile.getSkillXpLevelRaw(skill);
@@ -593,12 +591,12 @@ public final class ExperienceAPI {
     @Deprecated
     public static void addLevelOffline(String playerName, String skillType, int levels) {
         PlayerProfile profile = getOfflineProfile(playerName);
-        SkillType skill = getSkillType(skillType);
+        PrimarySkillType skill = getSkillType(skillType);
 
         if (skill.isChildSkill()) {
-            Set<SkillType> parentSkills = FamilyTree.getParents(skill);
+            Set<PrimarySkillType> parentSkills = FamilyTree.getParents(skill);
 
-            for (SkillType parentSkill : parentSkills) {
+            for (PrimarySkillType parentSkill : parentSkills) {
                 profile.addLevels(parentSkill, (levels / parentSkills.size()));
             }
 
@@ -624,12 +622,12 @@ public final class ExperienceAPI {
      */
     public static void addLevelOffline(UUID uuid, String skillType, int levels) {
         PlayerProfile profile = getOfflineProfile(uuid);
-        SkillType skill = getSkillType(skillType);
+        PrimarySkillType skill = getSkillType(skillType);
 
         if (skill.isChildSkill()) {
-            Set<SkillType> parentSkills = FamilyTree.getParents(skill);
+            Set<PrimarySkillType> parentSkills = FamilyTree.getParents(skill);
 
-            for (SkillType parentSkill : parentSkills) {
+            for (PrimarySkillType parentSkill : parentSkills) {
                 profile.addLevels(parentSkill, (levels / parentSkills.size()));
             }
 
@@ -651,9 +649,26 @@ public final class ExperienceAPI {
      * @return the level of a given skill
      *
      * @throws InvalidSkillException if the given skill is not valid
+     * @deprecated Use getLevel(Player player, PrimarySkillType skillType) instead
      */
+    @Deprecated
     public static int getLevel(Player player, String skillType) {
         return getPlayer(player).getSkillLevel(getSkillType(skillType));
+    }
+
+    /**
+     * Get the level a player has in a specific skill.
+     * </br>
+     * This function is designed for API usage.
+     *
+     * @param player The player to get the level for
+     * @param skillType The skill to get the level for
+     * @return the level of a given skill
+     *
+     * @throws InvalidSkillException if the given skill is not valid
+     */
+    public static int getLevel(Player player, PrimarySkillType skillType) {
+        return getPlayer(player).getSkillLevel(skillType);
     }
 
     /**
@@ -716,7 +731,7 @@ public final class ExperienceAPI {
         int powerLevel = 0;
         PlayerProfile profile = getOfflineProfile(playerName);
 
-        for (SkillType type : SkillType.NON_CHILD_SKILLS) {
+        for (PrimarySkillType type : PrimarySkillType.NON_CHILD_SKILLS) {
             powerLevel += profile.getSkillLevel(type);
         }
 
@@ -737,7 +752,7 @@ public final class ExperienceAPI {
         int powerLevel = 0;
         PlayerProfile profile = getOfflineProfile(uuid);
 
-        for (SkillType type : SkillType.NON_CHILD_SKILLS) {
+        for (PrimarySkillType type : PrimarySkillType.NON_CHILD_SKILLS) {
             powerLevel += profile.getSkillLevel(type);
         }
 
@@ -785,7 +800,7 @@ public final class ExperienceAPI {
      */
     @Deprecated
     public static int getPlayerRankSkill(String playerName, String skillType) {
-        return mcMMO.getDatabaseManager().readRank(getOfflineProfile(playerName).getPlayerName()).get(getNonChildSkillType(skillType));
+        return mcMMO.getDatabaseManager().readRank(mcMMO.p.getServer().getOfflinePlayer(playerName).getName()).get(getNonChildSkillType(skillType));
     }
 
     /**
@@ -803,7 +818,7 @@ public final class ExperienceAPI {
      * @return the position on the leaderboard
      */
     public static int getPlayerRankSkill(UUID uuid, String skillType) {
-        return mcMMO.getDatabaseManager().readRank(getOfflineProfile(uuid).getPlayerName()).get(getNonChildSkillType(skillType));
+        return mcMMO.getDatabaseManager().readRank(mcMMO.p.getServer().getOfflinePlayer(uuid).getName()).get(getNonChildSkillType(skillType));
     }
 
     /**
@@ -819,7 +834,7 @@ public final class ExperienceAPI {
      */
     @Deprecated
     public static int getPlayerRankOverall(String playerName) {
-        return mcMMO.getDatabaseManager().readRank(getOfflineProfile(playerName).getPlayerName()).get(null);
+        return mcMMO.getDatabaseManager().readRank(mcMMO.p.getServer().getOfflinePlayer(playerName).getName()).get(null);
     }
 
     /**
@@ -834,7 +849,7 @@ public final class ExperienceAPI {
      * @return the position on the power level leaderboard
      */
     public static int getPlayerRankOverall(UUID uuid) {
-        return mcMMO.getDatabaseManager().readRank(getOfflineProfile(uuid).getPlayerName()).get(null);
+        return mcMMO.getDatabaseManager().readRank(mcMMO.p.getServer().getOfflinePlayer(uuid).getName()).get(null);
     }
 
     /**
@@ -997,7 +1012,7 @@ public final class ExperienceAPI {
      * @throws InvalidFormulaTypeException if the given formulaType is not valid
      */
     public static int getXpNeededToLevel(int level) {
-        return mcMMO.getFormulaManager().getCachedXpToLevel(level, ExperienceConfig.getInstance().getFormulaType());
+        return mcMMO.getFormulaManager().getXPtoNextLevel(level, ExperienceConfig.getInstance().getFormulaType());
     }
 
     /**
@@ -1011,19 +1026,87 @@ public final class ExperienceAPI {
      * @throws InvalidFormulaTypeException if the given formulaType is not valid
      */
     public static int getXpNeededToLevel(int level, String formulaType) {
-        return mcMMO.getFormulaManager().getCachedXpToLevel(level, getFormulaType(formulaType));
+        return mcMMO.getFormulaManager().getXPtoNextLevel(level, getFormulaType(formulaType));
     }
 
+    /**
+     * Will add the appropriate type of XP from the block to the player based on the material of the blocks given
+     * @param blockStates the blocks to reward XP for
+     * @param mcMMOPlayer the target player
+     */
+    public static void addXpFromBlocks(ArrayList<BlockState> blockStates, McMMOPlayer mcMMOPlayer)
+    {
+        for(BlockState bs : blockStates)
+        {
+            for(PrimarySkillType skillType : PrimarySkillType.values())
+            {
+                if(ExperienceConfig.getInstance().getXp(skillType, bs.getType()) > 0)
+                {
+                    mcMMOPlayer.applyXpGain(skillType, ExperienceConfig.getInstance().getXp(skillType, bs.getType()), XPGainReason.PVE, XPGainSource.SELF);
+                }
+            }
+        }
+    }
+
+    /**
+     * Will add the appropriate type of XP from the block to the player based on the material of the blocks given if it matches the given skillType
+     * @param blockStates the blocks to reward XP for
+     * @param mcMMOPlayer the target player
+     * @param skillType target primary skill
+     */
+    public static void addXpFromBlocksBySkill(ArrayList<BlockState> blockStates, McMMOPlayer mcMMOPlayer, PrimarySkillType skillType)
+    {
+        for(BlockState bs : blockStates)
+        {
+            if(ExperienceConfig.getInstance().getXp(skillType, bs.getType()) > 0)
+            {
+                mcMMOPlayer.applyXpGain(skillType, ExperienceConfig.getInstance().getXp(skillType, bs.getType()), XPGainReason.PVE, XPGainSource.SELF);
+            }
+        }
+    }
+
+    /**
+     * Will add the appropriate type of XP from the block to the player based on the material of the blocks given
+     * @param blockState The target blockstate
+     * @param mcMMOPlayer The target player
+     */
+    public static void addXpFromBlock(BlockState blockState, McMMOPlayer mcMMOPlayer)
+    {
+        for(PrimarySkillType skillType : PrimarySkillType.values())
+        {
+            if(ExperienceConfig.getInstance().getXp(skillType, blockState.getType()) > 0)
+            {
+                mcMMOPlayer.applyXpGain(skillType, ExperienceConfig.getInstance().getXp(skillType, blockState.getType()), XPGainReason.PVE, XPGainSource.SELF);
+            }
+        }
+    }
+
+    /**
+     * Will add the appropriate type of XP from the block to the player based on the material of the blocks given if it matches the given skillType
+     * @param blockState The target blockstate
+     * @param mcMMOPlayer The target player
+     * @param skillType target primary skill
+     */
+    public static void addXpFromBlockBySkill(BlockState blockState, McMMOPlayer mcMMOPlayer, PrimarySkillType skillType)
+    {
+        if(ExperienceConfig.getInstance().getXp(skillType, blockState.getType()) > 0)
+        {
+            mcMMOPlayer.applyXpGain(skillType, ExperienceConfig.getInstance().getXp(skillType, blockState.getType()), XPGainReason.PVE, XPGainSource.SELF);
+        }
+    }
+
+
+
     // Utility methods follow.
-    private static void addOfflineXP(UUID playerUniqueId, SkillType skill, int XP) {
+    private static void addOfflineXP(UUID playerUniqueId, PrimarySkillType skill, int XP) {
         PlayerProfile profile = getOfflineProfile(playerUniqueId);
 
         profile.addXp(skill, XP);
-        profile.save();
+        profile.save(true);
     }
 
     @Deprecated
-    private static void addOfflineXP(String playerName, SkillType skill, int XP) {
+    private static void addOfflineXP(String playerName, PrimarySkillType skill, int XP) {
         PlayerProfile profile = getOfflineProfile(playerName);
 
         profile.addXp(skill, XP);
@@ -1052,8 +1135,8 @@ public final class ExperienceAPI {
         return profile;
     }
 
-    private static SkillType getSkillType(String skillType) throws InvalidSkillException {
-        SkillType skill = SkillType.getSkill(skillType);
+    private static PrimarySkillType getSkillType(String skillType) throws InvalidSkillException {
+        PrimarySkillType skill = PrimarySkillType.getSkill(skillType);
 
         if (skill == null) {
             throw new InvalidSkillException();
@@ -1062,8 +1145,8 @@ public final class ExperienceAPI {
         return skill;
     }
 
-    private static SkillType getNonChildSkillType(String skillType) throws InvalidSkillException, UnsupportedOperationException {
-        SkillType skill = getSkillType(skillType);
+    private static PrimarySkillType getNonChildSkillType(String skillType) throws InvalidSkillException, UnsupportedOperationException {
+        PrimarySkillType skill = getSkillType(skillType);
 
         if (skill.isChildSkill()) {
             throw new UnsupportedOperationException("Child skills do not have XP");
@@ -1092,6 +1175,13 @@ public final class ExperienceAPI {
         return formulaType;
     }
 
+    /**
+     * @deprecated Use UserManager::getPlayer(Player player) instead
+     * @param player target player
+     * @return McMMOPlayer for that player if the profile is loaded, otherwise null
+     * @throws McMMOPlayerNotFoundException
+     */
+    @Deprecated
     private static McMMOPlayer getPlayer(Player player) throws McMMOPlayerNotFoundException {
         if (!UserManager.hasPlayerDataKey(player)) {
             throw new McMMOPlayerNotFoundException(player);

@@ -1,21 +1,18 @@
 package com.gmail.nossr50.config.mods;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
-
-import org.bukkit.Material;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.inventory.ItemStack;
-
 import com.gmail.nossr50.config.ConfigLoader;
 import com.gmail.nossr50.datatypes.mods.CustomTool;
 import com.gmail.nossr50.datatypes.skills.ItemType;
 import com.gmail.nossr50.datatypes.skills.MaterialType;
 import com.gmail.nossr50.skills.repair.repairables.Repairable;
 import com.gmail.nossr50.skills.repair.repairables.RepairableFactory;
-import com.gmail.nossr50.util.skills.SkillUtils;
+import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
 
 public class CustomToolConfig extends ConfigLoader {
     private boolean needsUpdate = false;
@@ -86,13 +83,6 @@ public class CustomToolConfig extends ConfigLoader {
             }
 
             if (repairable) {
-                byte repairData = (byte) config.getInt(toolType + "." + toolName + ".Repair_Material_Data_Value", -1);
-                int repairQuantity = SkillUtils.getRepairAndSalvageQuantities(new ItemStack(toolMaterial), repairMaterial, repairData);
-
-                if (repairQuantity == 0) {
-                    repairQuantity = config.getInt(toolType + "." + toolName + ".Repair_Material_Quantity", 2);
-                }
-
                 String repairItemName = config.getString(toolType + "." + toolName + ".Repair_Material_Pretty_Name");
                 int repairMinimumLevel = config.getInt(toolType + "." + toolName + ".Repair_MinimumLevel", 0);
                 double repairXpMultiplier = config.getDouble(toolType + "." + toolName + ".Repair_XpMultiplier", 1);
@@ -103,7 +93,7 @@ public class CustomToolConfig extends ConfigLoader {
                     durability = (short) config.getInt(toolType + "." + toolName + ".Durability", 60);
                 }
 
-                repairables.add(RepairableFactory.getRepairable(toolMaterial, repairMaterial, repairData, repairItemName, repairMinimumLevel, repairQuantity, durability, ItemType.TOOL, MaterialType.OTHER, repairXpMultiplier));
+                repairables.add(RepairableFactory.getRepairable(toolMaterial, repairMaterial, repairItemName, repairMinimumLevel, durability, ItemType.TOOL, MaterialType.OTHER, repairXpMultiplier));
             }
 
             double multiplier = config.getDouble(toolType + "." + toolName + ".XP_Modifier", 1.0);

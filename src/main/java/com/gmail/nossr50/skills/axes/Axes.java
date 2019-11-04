@@ -1,21 +1,20 @@
 package com.gmail.nossr50.skills.axes;
 
+import com.gmail.nossr50.config.AdvancedConfig;
+import com.gmail.nossr50.datatypes.skills.SubSkillType;
+import com.gmail.nossr50.util.ItemUtils;
+import com.gmail.nossr50.util.skills.RankUtils;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import com.gmail.nossr50.config.AdvancedConfig;
-import com.gmail.nossr50.util.ItemUtils;
-
 public class Axes {
-    public static double axeMasteryMaxBonus      = AdvancedConfig.getInstance().getAxeMasteryBonusMax();
-    public static int    axeMasteryMaxBonusLevel = AdvancedConfig.getInstance().getAxeMasteryMaxBonusLevel();
+    public static double axeMasteryRankDamageMultiplier = AdvancedConfig.getInstance().getAxeMasteryRankDamageMultiplier();
 
-    public static double criticalHitPVPModifier   = AdvancedConfig.getInstance().getCriticalHitPVPModifier();
-    public static double criticalHitPVEModifier   = AdvancedConfig.getInstance().getCriticalHitPVEModifier();
+    public static double criticalHitPVPModifier   = AdvancedConfig.getInstance().getCriticalStrikesPVPModifier();
+    public static double criticalHitPVEModifier   = AdvancedConfig.getInstance().getCriticalStrikesPVEModifier();
 
-    public static int    impactIncreaseLevel         = AdvancedConfig.getInstance().getArmorImpactIncreaseLevel();
     public static double impactChance                = AdvancedConfig.getInstance().getImpactChance();
-    public static double impactMaxDurabilityModifier = AdvancedConfig.getInstance().getArmorImpactMaxDurabilityDamage() / 100D;
 
     public static double greaterImpactBonusDamage         = AdvancedConfig.getInstance().getGreaterImpactBonusDamage();
     public static double greaterImpactChance              = AdvancedConfig.getInstance().getGreaterImpactChance();
@@ -31,5 +30,15 @@ public class Axes {
         }
 
         return false;
+    }
+
+    /**
+     * For every rank in Axe Mastery we add RankDamageMultiplier to get the total bonus damage from Axe Mastery
+     * @param player The target player
+     * @return The axe mastery bonus damage which will be added to their attack
+     */
+    public static double getAxeMasteryBonusDamage(Player player)
+    {
+        return RankUtils.getRank(player, SubSkillType.AXES_AXE_MASTERY) * Axes.axeMasteryRankDamageMultiplier;
     }
 }

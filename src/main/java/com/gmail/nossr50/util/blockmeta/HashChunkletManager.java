@@ -1,20 +1,11 @@
 package com.gmail.nossr50.util.blockmeta;
 
-import java.io.EOFException;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.StreamCorruptedException;
-import java.io.UTFDataFormatException;
-import java.util.HashMap;
-
+import com.gmail.nossr50.mcMMO;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 
-import com.gmail.nossr50.mcMMO;
+import java.io.*;
+import java.util.HashMap;
 
 public class HashChunkletManager implements ChunkletManager {
     public HashMap<String, ChunkletStore> store = new HashMap<String, ChunkletStore>();
@@ -184,9 +175,10 @@ public class HashChunkletManager implements ChunkletManager {
 
     @Override
     public boolean isTrue(int x, int y, int z, World world) {
-        int cx = x / 16;
-        int cz = z / 16;
-        int cy = y / 64;
+        int cx = x >> 4;
+        int cz = z >> 4;
+        int cy = y >> 6;
+
         String key = world.getName() + "," + cx + "," + cz + "," + cy;
 
         if (!store.containsKey(key)) {
@@ -212,9 +204,9 @@ public class HashChunkletManager implements ChunkletManager {
 
     @Override
     public void setTrue(int x, int y, int z, World world) {
-        int cx = x / 16;
-        int cz = z / 16;
-        int cy = y / 64;
+        int cx = x >> 4;
+        int cz = z >> 4;
+        int cy = y >> 6;
 
         int ix = Math.abs(x) % 16;
         int iz = Math.abs(z) % 16;
@@ -244,9 +236,9 @@ public class HashChunkletManager implements ChunkletManager {
 
     @Override
     public void setFalse(int x, int y, int z, World world) {
-        int cx = x / 16;
-        int cz = z / 16;
-        int cy = y / 64;
+        int cx = x >> 4;
+        int cz = z >> 4;
+        int cy = y >> 6;
 
         int ix = Math.abs(x) % 16;
         int iz = Math.abs(z) % 16;

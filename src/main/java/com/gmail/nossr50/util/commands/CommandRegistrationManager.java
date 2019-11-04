@@ -1,24 +1,10 @@
 package com.gmail.nossr50.util.commands;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.bukkit.command.PluginCommand;
-
-import com.gmail.nossr50.mcMMO;
-import com.gmail.nossr50.commands.KrakenCommand;
-import com.gmail.nossr50.commands.MHDCommand;
-import com.gmail.nossr50.commands.McImportCommand;
-import com.gmail.nossr50.commands.McabilityCommand;
-import com.gmail.nossr50.commands.McconvertCommand;
-import com.gmail.nossr50.commands.McgodCommand;
-import com.gmail.nossr50.commands.McmmoCommand;
-import com.gmail.nossr50.commands.McnotifyCommand;
-import com.gmail.nossr50.commands.McrefreshCommand;
-import com.gmail.nossr50.commands.McscoreboardCommand;
-import com.gmail.nossr50.commands.MobhealthCommand;
-import com.gmail.nossr50.commands.XprateCommand;
+import com.gmail.nossr50.commands.*;
+import com.gmail.nossr50.commands.admin.McmmoReloadLocaleCommand;
+import com.gmail.nossr50.commands.admin.PlayerDebugCommand;
 import com.gmail.nossr50.commands.chat.AdminChatCommand;
+import com.gmail.nossr50.commands.chat.McChatSpy;
 import com.gmail.nossr50.commands.chat.PartyChatCommand;
 import com.gmail.nossr50.commands.database.McpurgeCommand;
 import com.gmail.nossr50.commands.database.McremoveCommand;
@@ -31,30 +17,17 @@ import com.gmail.nossr50.commands.hardcore.HardcoreCommand;
 import com.gmail.nossr50.commands.hardcore.VampirismCommand;
 import com.gmail.nossr50.commands.party.PartyCommand;
 import com.gmail.nossr50.commands.party.teleport.PtpCommand;
-import com.gmail.nossr50.commands.player.InspectCommand;
-import com.gmail.nossr50.commands.player.MccooldownCommand;
-import com.gmail.nossr50.commands.player.McrankCommand;
-import com.gmail.nossr50.commands.player.McstatsCommand;
-import com.gmail.nossr50.commands.player.MctopCommand;
-import com.gmail.nossr50.commands.skills.AcrobaticsCommand;
-import com.gmail.nossr50.commands.skills.AlchemyCommand;
-import com.gmail.nossr50.commands.skills.ArcheryCommand;
-import com.gmail.nossr50.commands.skills.AxesCommand;
-import com.gmail.nossr50.commands.skills.ExcavationCommand;
-import com.gmail.nossr50.commands.skills.FishingCommand;
-import com.gmail.nossr50.commands.skills.HerbalismCommand;
-import com.gmail.nossr50.commands.skills.MiningCommand;
-import com.gmail.nossr50.commands.skills.RepairCommand;
-import com.gmail.nossr50.commands.skills.SalvageCommand;
-import com.gmail.nossr50.commands.skills.SmeltingCommand;
-import com.gmail.nossr50.commands.skills.SwordsCommand;
-import com.gmail.nossr50.commands.skills.TamingCommand;
-import com.gmail.nossr50.commands.skills.UnarmedCommand;
-import com.gmail.nossr50.commands.skills.WoodcuttingCommand;
+import com.gmail.nossr50.commands.player.*;
+import com.gmail.nossr50.commands.skills.*;
 import com.gmail.nossr50.config.Config;
-import com.gmail.nossr50.datatypes.skills.SkillType;
+import com.gmail.nossr50.datatypes.skills.PrimarySkillType;
 import com.gmail.nossr50.locale.LocaleLoader;
+import com.gmail.nossr50.mcMMO;
 import com.gmail.nossr50.util.StringUtils;
+import org.bukkit.command.PluginCommand;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public final class CommandRegistrationManager {
     private CommandRegistrationManager() {};
@@ -62,7 +35,7 @@ public final class CommandRegistrationManager {
     private static String permissionsMessage = LocaleLoader.getString("mcMMO.NoPermission");
 
     private static void registerSkillCommands() {
-        for (SkillType skill : SkillType.values()) {
+        for (PrimarySkillType skill : PrimarySkillType.values()) {
             String commandName = skill.toString().toLowerCase();
             String localizedName = skill.getName().toLowerCase();
 
@@ -167,6 +140,33 @@ public final class CommandRegistrationManager {
         command.setPermissionMessage(permissionsMessage);
         command.setUsage(LocaleLoader.getString("Commands.Usage.1", "mcgod", "[" + LocaleLoader.getString("Commands.Usage.Player") + "]"));
         command.setExecutor(new McgodCommand());
+    }
+
+    private static void registerMmoInfoCommand() {
+        PluginCommand command = mcMMO.p.getCommand("mmoinfo");
+        command.setDescription(LocaleLoader.getString("Commands.Description.mmoinfo"));
+        command.setPermission("mcmmo.commands.mmoinfo");
+        command.setPermissionMessage(permissionsMessage);
+        command.setUsage(LocaleLoader.getString("Commands.Usage.1", "mmoinfo", "[" + LocaleLoader.getString("Commands.Usage.SubSkill") + "]"));
+        command.setExecutor(new MmoInfoCommand());
+    }
+
+    private static void registerMmoDebugCommand() {
+        PluginCommand command = mcMMO.p.getCommand("mmodebug");
+        command.setDescription(LocaleLoader.getString("Commands.Description.mmodebug"));
+        command.setPermission(null); //No perm required to save support headaches
+        command.setPermissionMessage(permissionsMessage);
+        command.setUsage(LocaleLoader.getString("Commands.Usage.0", "mmodebug"));
+        command.setExecutor(new PlayerDebugCommand());
+    }
+
+    private static void registerMcChatSpyCommand() {
+        PluginCommand command = mcMMO.p.getCommand("mcchatspy");
+        command.setDescription(LocaleLoader.getString("Commands.Description.mcchatspy"));
+        command.setPermission("mcmmo.commands.mcchatspy;mcmmo.commands.mcchatspy.others");
+        command.setPermissionMessage(permissionsMessage);
+        command.setUsage(LocaleLoader.getString("Commands.Usage.1", "mcchatspy", "[" + LocaleLoader.getString("Commands.Usage.Player") + "]"));
+        command.setExecutor(new McChatSpy());
     }
 
     private static void registerMcrefreshCommand() {
@@ -382,15 +382,6 @@ public final class CommandRegistrationManager {
         command.setUsage(LocaleLoader.getString("Commands.Usage.0", "mcnotify"));
         command.setExecutor(new McnotifyCommand());
     }
-
-    private static void registerMobhealthCommand() {
-        PluginCommand command = mcMMO.p.getCommand("mobhealth");
-        command.setDescription("Change the style of the mob healthbar"); //TODO: Localize
-        command.setPermission("mcmmo.commands.mobhealth");
-        command.setPermissionMessage(permissionsMessage);
-        command.setUsage(LocaleLoader.getString("Commands.Usage.1", "mobhealth", "<DISABLED | HEARTS | BAR>"));
-        command.setExecutor(new MobhealthCommand());
-    }
     
     private static void registerMHDCommand() {
         PluginCommand command = mcMMO.p.getCommand("mhd");
@@ -411,15 +402,6 @@ public final class CommandRegistrationManager {
         command.setExecutor(new McscoreboardCommand());
     }
 
-    private static void registerKrakenCommand() {
-        PluginCommand command = mcMMO.p.getCommand("kraken");
-        command.setDescription("Unleash the kraken!"); //TODO: Localize
-        command.setPermission("mcmmo.commands.kraken;mcmmo.commands.kraken.others");
-        command.setPermissionMessage(permissionsMessage);
-        command.setUsage(LocaleLoader.getString("Commands.Usage.1", "kraken", "[" + LocaleLoader.getString("Commands.Usage.Player") + "]"));
-        command.setExecutor(new KrakenCommand());
-    }
-
     private static void registerMcImportCommand() {
         PluginCommand command = mcMMO.p.getCommand("mcimport");
         command.setDescription("Import mod config files"); //TODO: Localize
@@ -429,17 +411,27 @@ public final class CommandRegistrationManager {
         command.setExecutor(new McImportCommand());
     }
 
+    private static void registerReloadLocaleCommand() {
+        PluginCommand command = mcMMO.p.getCommand("mcmmoreloadlocale");
+        command.setDescription("Reloads locale"); // TODO: Localize
+        command.setPermission("mcmmo.commands.reloadlocale");
+        command.setPermissionMessage(permissionsMessage);
+        command.setUsage(LocaleLoader.formatString("Commands.Usage.0", "mcmmoreloadlocale"));
+        command.setExecutor(new McmmoReloadLocaleCommand());
+    }
+
     public static void registerCommands() {
         // Generic Commands
+        registerMmoInfoCommand();
+        registerMmoDebugCommand();
         registerMcImportCommand();
-        registerKrakenCommand();
         registerMcabilityCommand();
         registerMcgodCommand();
+        registerMcChatSpyCommand();
         registerMcmmoCommand();
         registerMcnotifyCommand();
         registerMcrefreshCommand();
         registerMcscoreboardCommand();
-        registerMobhealthCommand();
         registerMHDCommand();
         registerXprateCommand();
 
@@ -476,5 +468,8 @@ public final class CommandRegistrationManager {
 
         // Skill Commands
         registerSkillCommands();
+
+        // Admin commands
+        registerReloadLocaleCommand();
     }
 }

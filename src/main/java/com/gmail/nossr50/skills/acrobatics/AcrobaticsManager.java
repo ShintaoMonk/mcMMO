@@ -1,39 +1,73 @@
 package com.gmail.nossr50.skills.acrobatics;
 
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.LightningStrike;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-
-import com.gmail.nossr50.config.Config;
+import com.gmail.nossr50.config.experience.ExperienceConfig;
+import com.gmail.nossr50.datatypes.LimitedSizeList;
+import com.gmail.nossr50.datatypes.experience.XPGainReason;
+import com.gmail.nossr50.datatypes.interactions.NotificationType;
 import com.gmail.nossr50.datatypes.player.McMMOPlayer;
-import com.gmail.nossr50.datatypes.skills.SecondaryAbility;
-import com.gmail.nossr50.datatypes.skills.SkillType;
-import com.gmail.nossr50.datatypes.skills.XPGainReason;
-import com.gmail.nossr50.locale.LocaleLoader;
+import com.gmail.nossr50.datatypes.skills.PrimarySkillType;
+import com.gmail.nossr50.datatypes.skills.SubSkillType;
+import com.gmail.nossr50.mcMMO;
 import com.gmail.nossr50.skills.SkillManager;
 import com.gmail.nossr50.util.Misc;
 import com.gmail.nossr50.util.Permissions;
+import com.gmail.nossr50.util.player.NotificationManager;
+import com.gmail.nossr50.util.random.RandomChanceUtil;
 import com.gmail.nossr50.util.skills.ParticleEffectUtils;
+import com.gmail.nossr50.util.skills.RankUtils;
+import com.gmail.nossr50.util.skills.SkillActivationType;
 import com.gmail.nossr50.util.skills.SkillUtils;
+import org.bukkit.Location;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LightningStrike;
+import org.bukkit.entity.Player;
+import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.metadata.MetadataValue;
 
 public class AcrobaticsManager extends SkillManager {
-    private int fallTries = 0;
-    Location lastFallLocation;
 
     public AcrobaticsManager(McMMOPlayer mcMMOPlayer) {
-        super(mcMMOPlayer, SkillType.ACROBATICS);
+        super(mcMMOPlayer, PrimarySkillType.ACROBATICS);
+        fallLocationMap = new LimitedSizeList(50);
     }
 
-    public boolean canRoll() {
-        return !exploitPrevention() && Permissions.secondaryAbilityEnabled(getPlayer(), SecondaryAbility.ROLL);
+    private long rollXPCooldown = 0;
+    private long rollXPInterval = (1000 * 3); //1 Minute
+    private long rollXPIntervalLengthen = (1000 * 10); //10 Seconds
+    private LimitedSizeList fallLocationMap;
+
+    public boolean hasFallenInLocationBefore(Location location)
+    {
+        return fallLocationMap.contains(location);
+    }
+
+    public void addLocationToFallMap(Location location)
+    {
+        fallLocationMap.add(location);
+    }
+
+    public boolean canGainRollXP()
+    {
+        if(!ExperienceConfig.getInstance().isAcrobaticsExploitingPrevented())
+            return true;
+
+        if(System.currentTimeMillis() >= rollXPCooldown)
+        {
+            rollXPCooldown = System.currentTimeMillis() + rollXPInterval;
+            rollXPIntervalLengthen = (1000 * 10); //5 Seconds
+            return true;
+        } else {
+            rollXPCooldown += rollXPIntervalLengthen;
+            rollXPIntervalLengthen += 1000; //Add another second to the next penalty
+            return false;
+        }
     }
 
     public boolean canDodge(Entity damager) {
-        if (Permissions.secondaryAbilityEnabled(getPlayer(), SecondaryAbility.DODGE)) {
+        if(!RankUtils.hasUnlockedSubskill(getPlayer(), SubSkillType.ACROBATICS_DODGE))
+            return false;
+
+        if (Permissions.isSubSkillEnabled(getPlayer(), SubSkillType.ACROBATICS_DODGE)) {
             if (damager instanceof LightningStrike && Acrobatics.dodgeLightningDisabled) {
                 return false;
             }
@@ -50,120 +84,44 @@ public class AcrobaticsManager extends SkillManager {
      * @param damage The amount of damage initially dealt by the event
      * @return the modified event damage if the ability was successful, the original event damage otherwise
      */
-    public double dodgeCheck(double damage) {
+    public double dodgeCheck(Entity attacker, double damage) {
         double modifiedDamage = Acrobatics.calculateModifiedDodgeDamage(damage, Acrobatics.dodgeDamageModifier);
         Player player = getPlayer();
 
-        if (!isFatal(modifiedDamage) && SkillUtils.activationSuccessful(SecondaryAbility.DODGE, player, getSkillLevel(), activationChance)) {
+        if (!isFatal(modifiedDamage) && RandomChanceUtil.isActivationSuccessful(SkillActivationType.RANDOM_LINEAR_100_SCALE_WITH_CAP, SubSkillType.ACROBATICS_DODGE, player)) {
             ParticleEffectUtils.playDodgeEffect(player);
 
             if (mcMMOPlayer.useChatNotifications()) {
-                player.sendMessage(LocaleLoader.getString("Acrobatics.Combat.Proc"));
+                NotificationManager.sendPlayerInformation(player, NotificationType.SUBSKILL_MESSAGE, "Acrobatics.Combat.Proc");
             }
 
-            // Why do we check respawn cooldown here?
             if (SkillUtils.cooldownExpired(mcMMOPlayer.getRespawnATS(), Misc.PLAYER_RESPAWN_COOLDOWN_SECONDS)) {
-                applyXpGain((float) (damage * Acrobatics.dodgeXpModifier), XPGainReason.PVP);
+                if(!(attacker instanceof Player)) {
+                    //Check to see how many dodge XP rewards this mob has handed out
+                    if(attacker.hasMetadata(mcMMO.DODGE_TRACKER) && ExperienceConfig.getInstance().isAcrobaticsExploitingPrevented()) {
+                        //If Dodge XP has been handed out 5 times then consider it being exploited
+                        MetadataValue metadataValue = attacker.getMetadata(mcMMO.DODGE_TRACKER).get(0);
+                        int count = attacker.getMetadata(mcMMO.DODGE_TRACKER).get(0).asInt();
+
+                        if(count <= 5) {
+                            applyXpGain((float) (damage * Acrobatics.dodgeXpModifier), XPGainReason.PVE);
+                            attacker.setMetadata(mcMMO.DODGE_TRACKER, new FixedMetadataValue(mcMMO.p, count + 1));
+                        }
+                    } else {
+                        applyXpGain((float) (damage * Acrobatics.dodgeXpModifier), XPGainReason.PVE);
+                        attacker.setMetadata(mcMMO.DODGE_TRACKER, new FixedMetadataValue(mcMMO.p, 1));
+                    }
+                }
             }
 
+            //Check respawn to prevent abuse
             return modifiedDamage;
         }
 
         return damage;
-    }
-
-    /**
-     * Handle the damage reduction and XP gain from the Roll ability
-     *
-     * @param damage The amount of damage initially dealt by the event
-     * @return the modified event damage if the ability was successful, the original event damage otherwise
-     */
-    public double rollCheck(double damage) {
-        Player player = getPlayer();
-
-        if (player.isSneaking() && Permissions.secondaryAbilityEnabled(player, SecondaryAbility.GRACEFUL_ROLL)) {
-            return gracefulRollCheck(damage);
-        }
-
-        double modifiedDamage = Acrobatics.calculateModifiedRollDamage(damage, Acrobatics.rollThreshold);
-
-        if (!isFatal(modifiedDamage) && SkillUtils.activationSuccessful(SecondaryAbility.ROLL, player, getSkillLevel(), activationChance)) {
-            player.sendMessage(LocaleLoader.getString("Acrobatics.Roll.Text"));
-            applyXpGain(calculateRollXP(damage, true), XPGainReason.PVE);
-
-            return modifiedDamage;
-        }
-        else if (!isFatal(damage)) {
-            applyXpGain(calculateRollXP(damage, false), XPGainReason.PVE);
-        }
-
-        lastFallLocation = player.getLocation();
-
-        return damage;
-    }
-
-    /**
-     * Handle the damage reduction and XP gain from the Graceful Roll ability
-     *
-     * @param damage The amount of damage initially dealt by the event
-     * @return the modified event damage if the ability was successful, the original event damage otherwise
-     */
-    private double gracefulRollCheck(double damage) {
-        double modifiedDamage = Acrobatics.calculateModifiedRollDamage(damage, Acrobatics.gracefulRollThreshold);
-
-        if (!isFatal(modifiedDamage) && SkillUtils.activationSuccessful(SecondaryAbility.GRACEFUL_ROLL, getPlayer(), getSkillLevel(), activationChance)) {
-            getPlayer().sendMessage(LocaleLoader.getString("Acrobatics.Ability.Proc"));
-            applyXpGain(calculateRollXP(damage, true), XPGainReason.PVE);
-
-            return modifiedDamage;
-        }
-        else if (!isFatal(damage)) {
-            applyXpGain(calculateRollXP(damage, false), XPGainReason.PVE);
-        }
-
-        return damage;
-    }
-
-    /**
-     * Check if the player is "farming" Acrobatics XP using
-     * exploits in the game.
-     *
-     * @return true if exploits are detected, false otherwise
-     */
-    public boolean exploitPrevention() {
-        if (!Config.getInstance().getAcrobaticsPreventAFK()) {
-            return false;
-        }
-
-        Player player = getPlayer();
-
-        if (player.getInventory().getItemInMainHand().getType() == Material.ENDER_PEARL || player.isInsideVehicle()) {
-            return true;
-        }
-
-        Location fallLocation = player.getLocation();
-        int maxTries = Config.getInstance().getAcrobaticsAFKMaxTries();
-
-        boolean sameLocation = (lastFallLocation != null && Misc.isNear(lastFallLocation, fallLocation, 2));
-
-        fallTries = sameLocation ? Math.min(fallTries + 1, maxTries) : Math.max(fallTries - 1, 0);
-        lastFallLocation = fallLocation;
-
-        return fallTries + 1 > maxTries;
     }
 
     private boolean isFatal(double damage) {
         return getPlayer().getHealth() - damage <= 0;
-    }
-
-    private float calculateRollXP(double damage, boolean isRoll) {
-        ItemStack boots = getPlayer().getInventory().getBoots();
-        float xp = (float) (damage * (isRoll ? Acrobatics.rollXpModifier : Acrobatics.fallXpModifier));
-
-        if (boots != null && boots.containsEnchantment(Enchantment.PROTECTION_FALL)) {
-            xp *= Acrobatics.featherFallXPModifier;
-        }
-
-        return xp;
     }
 }

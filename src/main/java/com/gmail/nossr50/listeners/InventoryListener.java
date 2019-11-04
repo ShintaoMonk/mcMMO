@@ -1,7 +1,21 @@
 package com.gmail.nossr50.listeners;
 
-import java.util.List;
-
+import com.gmail.nossr50.config.Config;
+import com.gmail.nossr50.config.WorldBlacklist;
+import com.gmail.nossr50.datatypes.skills.PrimarySkillType;
+import com.gmail.nossr50.datatypes.skills.SubSkillType;
+import com.gmail.nossr50.events.fake.FakeBrewEvent;
+import com.gmail.nossr50.mcMMO;
+import com.gmail.nossr50.runnables.player.PlayerUpdateInventoryTask;
+import com.gmail.nossr50.skills.alchemy.Alchemy;
+import com.gmail.nossr50.skills.alchemy.AlchemyPotionBrewer;
+import com.gmail.nossr50.util.ItemUtils;
+import com.gmail.nossr50.util.Permissions;
+import com.gmail.nossr50.util.player.UserManager;
+import com.gmail.nossr50.util.skills.SkillUtils;
+import com.gmail.nossr50.worldguard.WorldGuardManager;
+import com.gmail.nossr50.worldguard.WorldGuardUtils;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -12,36 +26,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.ClickType;
-import org.bukkit.event.inventory.CraftItemEvent;
-import org.bukkit.event.inventory.FurnaceBurnEvent;
-import org.bukkit.event.inventory.FurnaceExtractEvent;
-import org.bukkit.event.inventory.FurnaceSmeltEvent;
-import org.bukkit.event.inventory.InventoryAction;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.InventoryDragEvent;
-import org.bukkit.event.inventory.InventoryMoveItemEvent;
-import org.bukkit.event.inventory.InventoryOpenEvent;
-import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.inventory.BrewerInventory;
-import org.bukkit.inventory.FurnaceInventory;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryHolder;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.event.inventory.*;
+import org.bukkit.inventory.*;
 import org.bukkit.metadata.MetadataValue;
 
-import com.gmail.nossr50.mcMMO;
-import com.gmail.nossr50.config.Config;
-import com.gmail.nossr50.datatypes.skills.SecondaryAbility;
-import com.gmail.nossr50.datatypes.skills.SkillType;
-import com.gmail.nossr50.runnables.player.PlayerUpdateInventoryTask;
-import com.gmail.nossr50.skills.alchemy.Alchemy;
-import com.gmail.nossr50.skills.alchemy.AlchemyPotionBrewer;
-import com.gmail.nossr50.util.ItemUtils;
-import com.gmail.nossr50.util.Permissions;
-import com.gmail.nossr50.util.player.UserManager;
-import com.gmail.nossr50.util.skills.SkillUtils;
+import java.util.List;
 
 public class InventoryListener implements Listener {
     private final mcMMO plugin;
@@ -50,11 +39,15 @@ public class InventoryListener implements Listener {
         this.plugin = plugin;
     }
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onInventoryOpen(InventoryOpenEvent event) {
+        /* WORLD BLACKLIST CHECK */
+        if(WorldBlacklist.isWorldBlacklisted(event.getPlayer().getWorld()))
+            return;
+
         Block furnaceBlock = processInventoryOpenOrCloseEvent(event.getInventory());
 
-        if (furnaceBlock == null || furnaceBlock.hasMetadata(mcMMO.furnaceMetadataKey)) {
+        if (furnaceBlock == null) {
             return;
         }
 
@@ -64,11 +57,22 @@ public class InventoryListener implements Listener {
             return;
         }
 
-        furnaceBlock.setMetadata(mcMMO.furnaceMetadataKey, UserManager.getPlayer((Player) player).getPlayerMetadata());
+        //Profile not loaded
+        if(UserManager.getPlayer((Player) player) == null)
+        {
+            return;
+        }
+
+        if(!furnaceBlock.hasMetadata(mcMMO.furnaceMetadataKey) && furnaceBlock.getMetadata(mcMMO.furnaceMetadataKey).size() == 0)
+            furnaceBlock.setMetadata(mcMMO.furnaceMetadataKey, UserManager.getPlayer((Player) player).getPlayerMetadata());
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onInventoryClose(InventoryCloseEvent event) {
+        /* WORLD BLACKLIST CHECK */
+        if(WorldBlacklist.isWorldBlacklisted(event.getPlayer().getWorld()))
+            return;
+
         Block furnaceBlock = processInventoryOpenOrCloseEvent(event.getInventory());
 
         if (furnaceBlock == null || furnaceBlock.hasMetadata(mcMMO.furnaceMetadataKey)) {
@@ -86,6 +90,10 @@ public class InventoryListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onFurnaceBurnEvent(FurnaceBurnEvent event) {
+        /* WORLD BLACKLIST CHECK */
+        if(WorldBlacklist.isWorldBlacklisted(event.getBlock().getWorld()))
+            return;
+
         Block furnaceBlock = event.getBlock();
         BlockState furnaceState = furnaceBlock.getState();
         ItemStack smelting = furnaceState instanceof Furnace ? ((Furnace) furnaceState).getInventory().getSmelting() : null;
@@ -96,7 +104,20 @@ public class InventoryListener implements Listener {
 
         Player player = getPlayerFromFurnace(furnaceBlock);
 
-        if (!UserManager.hasPlayerDataKey(player) || !Permissions.secondaryAbilityEnabled(player, SecondaryAbility.FUEL_EFFICIENCY)) {
+        /* WORLD GUARD MAIN FLAG CHECK */
+        if(WorldGuardUtils.isWorldGuardLoaded())
+        {
+            if(!WorldGuardManager.getInstance().hasMainFlag(player))
+                return;
+        }
+
+        if (!UserManager.hasPlayerDataKey(player) || !Permissions.isSubSkillEnabled(player, SubSkillType.SMELTING_FUEL_EFFICIENCY)) {
+            return;
+        }
+
+        //Profile not loaded
+        if(UserManager.getPlayer(player) == null)
+        {
             return;
         }
 
@@ -105,6 +126,10 @@ public class InventoryListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onFurnaceSmeltEvent(FurnaceSmeltEvent event) {
+        /* WORLD BLACKLIST CHECK */
+        if(WorldBlacklist.isWorldBlacklisted(event.getBlock().getWorld()))
+            return;
+
         Block furnaceBlock = event.getBlock();
         ItemStack smelting = event.getSource();
 
@@ -114,7 +139,20 @@ public class InventoryListener implements Listener {
 
         Player player = getPlayerFromFurnace(furnaceBlock);
 
-        if (!UserManager.hasPlayerDataKey(player) || !SkillType.SMELTING.getPermissions(player)) {
+        /* WORLD GUARD MAIN FLAG CHECK */
+        if(WorldGuardUtils.isWorldGuardLoaded())
+        {
+            if(!WorldGuardManager.getInstance().hasMainFlag(player))
+                return;
+        }
+
+        if (!UserManager.hasPlayerDataKey(player) || !PrimarySkillType.SMELTING.getPermissions(player)) {
+            return;
+        }
+
+        //Profile not loaded
+        if(UserManager.getPlayer(player) == null)
+        {
             return;
         }
 
@@ -123,6 +161,10 @@ public class InventoryListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onFurnaceExtractEvent(FurnaceExtractEvent event) {
+        /* WORLD BLACKLIST CHECK */
+        if(WorldBlacklist.isWorldBlacklisted(event.getPlayer().getWorld()))
+            return;
+
         Block furnaceBlock = event.getBlock();
 
         if (!ItemUtils.isSmelted(new ItemStack(event.getItemType(), event.getItemAmount()))) {
@@ -131,17 +173,55 @@ public class InventoryListener implements Listener {
 
         Player player = getPlayerFromFurnace(furnaceBlock);
 
-        if (!UserManager.hasPlayerDataKey(player) || !Permissions.vanillaXpBoost(player, SkillType.SMELTING)) {
+        /* WORLD GUARD MAIN FLAG CHECK */
+        if(WorldGuardUtils.isWorldGuardLoaded())
+        {
+            if(!WorldGuardManager.getInstance().hasMainFlag(player))
+                return;
+        }
+
+        if (!UserManager.hasPlayerDataKey(player) || !Permissions.vanillaXpBoost(player, PrimarySkillType.SMELTING)) {
             return;
         }
 
-        int exp = UserManager.getPlayer(player).getSmeltingManager().vanillaXPBoost(event.getExpToDrop());
+        //Profile not loaded
+        if(UserManager.getPlayer(player) == null)
+        {
+            return;
+        }
+
+        int xpToDrop = event.getExpToDrop();
+        int exp = UserManager.getPlayer(player).getSmeltingManager().vanillaXPBoost(xpToDrop);
         event.setExpToDrop(exp);
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onInventoryClickEventNormal(InventoryClickEvent event) {
+        /* WORLD BLACKLIST CHECK */
+        if(WorldBlacklist.isWorldBlacklisted(event.getWhoClicked().getWorld()))
+            return;
+
         Inventory inventory = event.getInventory();
+
+        if(event.getWhoClicked() instanceof Player)
+        {
+            Player player = ((Player) event.getWhoClicked()).getPlayer();
+            Block furnaceBlock = processInventoryOpenOrCloseEvent(event.getInventory());
+
+            if (furnaceBlock != null)
+            {
+                if (furnaceBlock.getMetadata(mcMMO.furnaceMetadataKey).size() > 0)
+                    furnaceBlock.removeMetadata(mcMMO.furnaceMetadataKey, mcMMO.p);
+
+                //Profile not loaded
+                if(UserManager.getPlayer(player) == null)
+                {
+                    return;
+                }
+
+                furnaceBlock.setMetadata(mcMMO.furnaceMetadataKey, UserManager.getPlayer(player).getPlayerMetadata());
+            }
+        }
 
         if (!(inventory instanceof BrewerInventory)) {
             return;
@@ -155,11 +235,19 @@ public class InventoryListener implements Listener {
 
         HumanEntity whoClicked = event.getWhoClicked();
 
-        if (!UserManager.hasPlayerDataKey(event.getWhoClicked()) || !Permissions.secondaryAbilityEnabled(whoClicked, SecondaryAbility.CONCOCTIONS)) {
+        if (!UserManager.hasPlayerDataKey(event.getWhoClicked()) || !Permissions.isSubSkillEnabled(whoClicked, SubSkillType.ALCHEMY_CONCOCTIONS)) {
             return;
         }
 
         Player player = (Player) whoClicked;
+
+        /* WORLD GUARD MAIN FLAG CHECK */
+        if(WorldGuardUtils.isWorldGuardLoaded())
+        {
+            if(!WorldGuardManager.getInstance().hasMainFlag(player))
+                return;
+        }
+
         BrewingStand stand = (BrewingStand) holder;
         ItemStack clicked = event.getCurrentItem();
         ItemStack cursor = event.getCursor();
@@ -240,6 +328,10 @@ public class InventoryListener implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onInventoryDragEvent(InventoryDragEvent event) {
+        /* WORLD BLACKLIST CHECK */
+        if(WorldBlacklist.isWorldBlacklisted(event.getWhoClicked().getWorld()))
+            return;
+
         Inventory inventory = event.getInventory();
 
         if (!(inventory instanceof BrewerInventory)) {
@@ -254,7 +346,7 @@ public class InventoryListener implements Listener {
 
         HumanEntity whoClicked = event.getWhoClicked();
 
-        if (!UserManager.hasPlayerDataKey(event.getWhoClicked()) || !Permissions.secondaryAbilityEnabled(whoClicked, SecondaryAbility.CONCOCTIONS)) {
+        if (!UserManager.hasPlayerDataKey(event.getWhoClicked()) || !Permissions.isSubSkillEnabled(whoClicked, SubSkillType.ALCHEMY_CONCOCTIONS)) {
             return;
         }
 
@@ -268,6 +360,13 @@ public class InventoryListener implements Listener {
         if (AlchemyPotionBrewer.isEmpty(ingredient) || ingredient.isSimilar(cursor)) {
             Player player = (Player) whoClicked;
 
+            /* WORLD GUARD MAIN FLAG CHECK */
+            if(WorldGuardUtils.isWorldGuardLoaded())
+            {
+                if(!WorldGuardManager.getInstance().hasMainFlag(player))
+                    return;
+            }
+
             if (AlchemyPotionBrewer.isValidIngredient(player, cursor)) {
                 // Not handled: dragging custom ingredients over ingredient slot (does not trigger any event)
                 AlchemyPotionBrewer.scheduleCheck(player, (BrewingStand) holder);
@@ -279,8 +378,31 @@ public class InventoryListener implements Listener {
         }
     }
 
+    // Apparently sometimes vanilla brewing beats our task listener to the actual brew. We handle this by cancelling the vanilla event and finishing our brew ourselves.
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onBrew(BrewEvent event)
+    {
+        /* WORLD BLACKLIST CHECK */
+        if(WorldBlacklist.isWorldBlacklisted(event.getBlock().getWorld()))
+            return;
+
+        if (event instanceof FakeBrewEvent)
+            return;
+        Location location = event.getBlock().getLocation();
+        if (Alchemy.brewingStandMap.containsKey(location)) {
+            Alchemy.brewingStandMap.get(location).finishImmediately();
+            event.setCancelled(true);
+        }
+    }
+
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onInventoryMoveItemEvent(InventoryMoveItemEvent event) {
+        /* WORLD BLACKLIST CHECK */
+
+        if(event.getSource().getLocation() != null)
+            if(WorldBlacklist.isWorldBlacklisted(event.getSource().getLocation().getWorld()))
+                return;
+
         Inventory inventory = event.getDestination();
 
         if (!(inventory instanceof BrewerInventory)) {
@@ -325,6 +447,10 @@ public class InventoryListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onCraftItem(CraftItemEvent event) {
+        /* WORLD BLACKLIST CHECK */
+        if(WorldBlacklist.isWorldBlacklisted(event.getWhoClicked().getWorld()))
+            return;
+
         final HumanEntity whoClicked = event.getWhoClicked();
 
         if (!whoClicked.hasMetadata(mcMMO.playerDataKey)) {
@@ -337,6 +463,15 @@ public class InventoryListener implements Listener {
             return;
         }
 
+        Player player = (Player) whoClicked;
+
+        /* WORLD GUARD MAIN FLAG CHECK */
+        if(WorldGuardUtils.isWorldGuardLoaded())
+        {
+            if(!WorldGuardManager.getInstance().hasMainFlag(player))
+                return;
+        }
+
         new PlayerUpdateInventoryTask((Player) whoClicked).runTaskLater(plugin, 0);
     }
 
@@ -347,7 +482,7 @@ public class InventoryListener implements Listener {
 
         Furnace furnace = (Furnace) inventory.getHolder();
 
-        if (furnace == null || furnace.getBurnTime() != 0) {
+        if (furnace == null) {
             return null;
         }
 

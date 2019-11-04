@@ -1,5 +1,12 @@
 package com.gmail.nossr50.util;
 
+import com.gmail.nossr50.commands.party.PartySubcommandType;
+import com.gmail.nossr50.datatypes.skills.ItemType;
+import com.gmail.nossr50.datatypes.skills.MaterialType;
+import com.gmail.nossr50.datatypes.skills.PrimarySkillType;
+import com.gmail.nossr50.datatypes.skills.SubSkillType;
+import com.gmail.nossr50.datatypes.skills.subskills.AbstractSubSkill;
+import com.gmail.nossr50.mcMMO;
 import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.World;
@@ -9,20 +16,12 @@ import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.PluginManager;
 
-import com.gmail.nossr50.mcMMO;
-import com.gmail.nossr50.commands.party.PartySubcommandType;
-import com.gmail.nossr50.datatypes.skills.ItemType;
-import com.gmail.nossr50.datatypes.skills.MaterialType;
-import com.gmail.nossr50.datatypes.skills.SecondaryAbility;
-import com.gmail.nossr50.datatypes.skills.SkillType;
-
 public final class Permissions {
     private Permissions() {}
 
     /*
      * GENERAL
      */
-
     public static boolean motd(Permissible permissible) { return permissible.hasPermission("mcmmo.motd"); }
     public static boolean mobHealthDisplay(Permissible permissible) { return permissible.hasPermission("mcmmo.mobhealthdisplay"); }
     public static boolean updateNotifications(Permissible permissible) {return permissible.hasPermission("mcmmo.tools.updatecheck"); }
@@ -43,6 +42,7 @@ public final class Permissions {
      * COMMANDS
      */
 
+    public static boolean mmoinfo(Permissible permissible) { return permissible.hasPermission("mcmmo.commands.mmoinfo"); }
     public static boolean addlevels(Permissible permissible) { return permissible.hasPermission("mcmmo.commands.addlevels"); }
     public static boolean addlevelsOthers(Permissible permissible) { return permissible.hasPermission("mcmmo.commands.addlevels.others"); }
 
@@ -55,13 +55,15 @@ public final class Permissions {
     public static boolean inspect(Permissible permissible) { return (permissible.hasPermission("mcmmo.commands.inspect")); }
     public static boolean inspectFar(Permissible permissible) { return (permissible.hasPermission("mcmmo.commands.inspect.far")); }
     public static boolean inspectHidden(Permissible permissible) { return (permissible.hasPermission("mcmmo.commands.inspect.hidden")); }
-    public static boolean inspectOffline(Permissible permissible) { return (permissible.hasPermission("mcmmo.commands.inspect.offline")); }
 
     public static boolean kraken(Permissible permissible) { return permissible.hasPermission("mcmmo.commands.kraken"); }
     public static boolean krakenOthers(Permissible permissible) { return permissible.hasPermission("mcmmo.commands.kraken.others"); }
 
     public static boolean mcability(Permissible permissible) { return (permissible.hasPermission("mcmmo.commands.mcability")); }
     public static boolean mcabilityOthers(Permissible permissible) { return (permissible.hasPermission("mcmmo.commands.mcability.others")); }
+
+    public static boolean adminChatSpy(Permissible permissible) { return permissible.hasPermission("mcmmo.commands.mcchatspy");}
+    public static boolean adminChatSpyOthers(Permissible permissible) { return permissible.hasPermission("mcmmo.commands.mcchatspy.others");}
 
     public static boolean mcgod(Permissible permissible) { return permissible.hasPermission("mcmmo.commands.mcgod"); }
     public static boolean mcgodOthers(Permissible permissible) { return permissible.hasPermission("mcmmo.commands.mcgod.others"); }
@@ -77,17 +79,17 @@ public final class Permissions {
     public static boolean mcrefresh(Permissible permissible) { return (permissible.hasPermission("mcmmo.commands.mcrefresh")); }
     public static boolean mcrefreshOthers(Permissible permissible) { return (permissible.hasPermission("mcmmo.commands.mcrefresh.others")); }
 
-    public static boolean mctop(Permissible permissible, SkillType skill) { return permissible.hasPermission("mcmmo.commands.mctop." + skill.toString().toLowerCase()); }
+    public static boolean mctop(Permissible permissible, PrimarySkillType skill) { return permissible.hasPermission("mcmmo.commands.mctop." + skill.toString().toLowerCase()); }
 
     public static boolean mmoedit(Permissible permissible) { return permissible.hasPermission("mcmmo.commands.mmoedit"); }
     public static boolean mmoeditOthers(Permissible permissible) { return permissible.hasPermission("mcmmo.commands.mmoedit.others"); }
 
     public static boolean skillreset(Permissible permissible) { return permissible.hasPermission("mcmmo.commands.skillreset"); }
-    public static boolean skillreset(Permissible permissible, SkillType skill) { return permissible.hasPermission("mcmmo.commands.skillreset." + skill.toString().toLowerCase()); }
+    public static boolean skillreset(Permissible permissible, PrimarySkillType skill) { return permissible.hasPermission("mcmmo.commands.skillreset." + skill.toString().toLowerCase()); }
     public static boolean skillresetOthers(Permissible permissible) { return permissible.hasPermission("mcmmo.commands.skillreset.others"); }
-    public static boolean skillresetOthers(Permissible permissible, SkillType skill) { return permissible.hasPermission("mcmmo.commands.skillreset.others." + skill.toString().toLowerCase()); }
+    public static boolean skillresetOthers(Permissible permissible, PrimarySkillType skill) { return permissible.hasPermission("mcmmo.commands.skillreset.others." + skill.toString().toLowerCase()); }
 
-    public static boolean xplock(Permissible permissible, SkillType skill) { return permissible.hasPermission("mcmmo.commands.xplock." + skill.toString().toLowerCase()); }
+    public static boolean xplock(Permissible permissible, PrimarySkillType skill) { return permissible.hasPermission("mcmmo.commands.xplock." + skill.toString().toLowerCase()); }
 
     public static boolean xprateSet(Permissible permissible) { return permissible.hasPermission("mcmmo.commands.xprate.set"); }
     public static boolean xprateReset(Permissible permissible) { return permissible.hasPermission("mcmmo.commands.xprate.reset"); }
@@ -98,21 +100,27 @@ public final class Permissions {
     public static boolean mcpurge(Permissible permissible) { return permissible.hasPermission("mcmmo.commands.mcpurge"); }
     public static boolean mcremove(Permissible permissible) { return permissible.hasPermission("mcmmo.commands.mcremove"); }
     public static boolean mmoupdate(Permissible permissible) { return permissible.hasPermission("mcmmo.commands.mmoupdate"); }
+    public static boolean reloadlocale(Permissible permissible) { return permissible.hasPermission("mcmmo.commands.reloadlocale"); }
 
     /*
      * PERKS
      */
 
-    public static boolean lucky(Permissible permissible, SkillType skill) { return permissible.hasPermission("mcmmo.perks.lucky." + skill.toString().toLowerCase()); }
+    /* BYPASS PERKS */
+
+    public static boolean hasRepairEnchantBypassPerk(Permissible permissible) { return permissible.hasPermission("mcmmo.perks.bypass.repairenchant"); }
+    public static boolean hasSalvageEnchantBypassPerk(Permissible permissible) { return permissible.hasPermission("mcmmo.perks.bypass.salvageenchant"); }
+
+    public static boolean lucky(Permissible permissible, PrimarySkillType skill) { return permissible.hasPermission("mcmmo.perks.lucky." + skill.toString().toLowerCase()); }
 
     /* XP PERKS */
-    public static boolean quadrupleXp(Permissible permissible, SkillType skill) { return permissible.hasPermission("mcmmo.perks.xp.quadruple." + skill.toString().toLowerCase()); }
-    public static boolean tripleXp(Permissible permissible, SkillType skill) { return permissible.hasPermission("mcmmo.perks.xp.triple." + skill.toString().toLowerCase()); }
-    public static boolean doubleAndOneHalfXp(Permissible permissible, SkillType skill) { return permissible.hasPermission("mcmmo.perks.xp.150percentboost." + skill.toString().toLowerCase()); }
-    public static boolean doubleXp(Permissible permissible, SkillType skill) { return permissible.hasPermission("mcmmo.perks.xp.double." + skill.toString().toLowerCase()); }
-    public static boolean oneAndOneHalfXp(Permissible permissible, SkillType skill) { return permissible.hasPermission("mcmmo.perks.xp.50percentboost." + skill.toString().toLowerCase()); }
-    public static boolean oneAndOneTenthXp(Permissible permissible, SkillType skill) { return permissible.hasPermission("mcmmo.perks.xp.10percentboost." + skill.toString().toLowerCase()); }
-    public static boolean customXpBoost(Permissible permissible, SkillType skill) { return permissible.hasPermission("mcmmo.perks.xp.customboost." + skill.toString().toLowerCase()); }
+    public static boolean quadrupleXp(Permissible permissible, PrimarySkillType skill) { return permissible.hasPermission("mcmmo.perks.xp.quadruple." + skill.toString().toLowerCase()); }
+    public static boolean tripleXp(Permissible permissible, PrimarySkillType skill) { return permissible.hasPermission("mcmmo.perks.xp.triple." + skill.toString().toLowerCase()); }
+    public static boolean doubleAndOneHalfXp(Permissible permissible, PrimarySkillType skill) { return permissible.hasPermission("mcmmo.perks.xp.150percentboost." + skill.toString().toLowerCase()); }
+    public static boolean doubleXp(Permissible permissible, PrimarySkillType skill) { return permissible.hasPermission("mcmmo.perks.xp.double." + skill.toString().toLowerCase()); }
+    public static boolean oneAndOneHalfXp(Permissible permissible, PrimarySkillType skill) { return permissible.hasPermission("mcmmo.perks.xp.50percentboost." + skill.toString().toLowerCase()); }
+    public static boolean oneAndOneTenthXp(Permissible permissible, PrimarySkillType skill) { return permissible.hasPermission("mcmmo.perks.xp.10percentboost." + skill.toString().toLowerCase()); }
+    public static boolean customXpBoost(Permissible permissible, PrimarySkillType skill) { return permissible.hasPermission("mcmmo.perks.xp.customboost." + skill.toString().toLowerCase()); }
 
     /* ACTIVATION PERKS */
     public static boolean twelveSecondActivationBoost(Permissible permissible) { return permissible.hasPermission("mcmmo.perks.activationtime.twelveseconds"); }
@@ -128,10 +136,11 @@ public final class Permissions {
      * SKILLS
      */
 
-    public static boolean skillEnabled(Permissible permissible, SkillType skill) {return permissible.hasPermission("mcmmo.skills." + skill.toString().toLowerCase()); }
-    public static boolean vanillaXpBoost(Permissible permissible, SkillType skill) { return permissible.hasPermission("mcmmo.ability." + skill.toString().toLowerCase() + ".vanillaxpboost"); }
-    public static boolean secondaryAbilityEnabled(Permissible permissible, SecondaryAbility skillAbility) { return permissible.hasPermission("mcmmo.ability." + SkillType.bySecondaryAbility(skillAbility).toString().toLowerCase() + "." + StringUtils.getPrettySecondaryAbilityString(skillAbility).replace(" ", "").toLowerCase()); }
-    public static boolean bonusDamage(Permissible permissible, SkillType skill) { return permissible.hasPermission("mcmmo.ability." + skill.toString().toLowerCase() + ".bonusdamage"); }
+    public static boolean skillEnabled(Permissible permissible, PrimarySkillType skill) {return permissible.hasPermission("mcmmo.skills." + skill.toString().toLowerCase()); }
+    public static boolean vanillaXpBoost(Permissible permissible, PrimarySkillType skill) { return permissible.hasPermission("mcmmo.ability." + skill.toString().toLowerCase() + ".vanillaxpboost"); }
+    public static boolean isSubSkillEnabled(Permissible permissible, SubSkillType subSkillType) { return permissible.hasPermission(subSkillType.getPermissionNodeAddress()); }
+    public static boolean isSubSkillEnabled(Permissible permissible, AbstractSubSkill abstractSubSkill) { return permissible.hasPermission(abstractSubSkill.getPermissionNode()); }
+    public static boolean bonusDamage(Permissible permissible, PrimarySkillType skill) { return permissible.hasPermission("mcmmo.ability." + skill.toString().toLowerCase() + ".bonusdamage"); }
 
     /* ACROBATICS */
     public static boolean dodge(Permissible permissible) { return permissible.hasPermission("mcmmo.ability.acrobatics.dodge"); }
@@ -183,7 +192,6 @@ public final class Permissions {
 
     /* TAMING */
     public static boolean callOfTheWild(Permissible permissible, EntityType type) { return permissible.hasPermission("mcmmo.ability.taming.callofthewild." + type.toString().toLowerCase()); }
-    public static boolean renamePets(Permissible permissible) { return permissible.hasPermission("mcmmo.ability.taming.callofthewild.renamepets"); }
 
     /* UNARMED */
     public static boolean berserk(Permissible permissible) { return permissible.hasPermission("mcmmo.ability.unarmed.berserk"); }
@@ -194,7 +202,7 @@ public final class Permissions {
     /*
      * PARTY
      */
-
+    public static boolean partySizeBypass(Permissible permissible) { return permissible.hasPermission("mcmmo.bypass.partylimit" ); }
     public static boolean party(Permissible permissible) { return permissible.hasPermission("mcmmo.commands.party"); }
     public static boolean partySubcommand(Permissible permissible, PartySubcommandType subcommand) { return permissible.hasPermission("mcmmo.commands.party." + subcommand.toString().toLowerCase()); }
     public static boolean friendlyFire(Permissible permissible) { return permissible.hasPermission("mcmmo.party.friendlyfire"); }

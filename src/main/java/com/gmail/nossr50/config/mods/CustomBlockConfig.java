@@ -1,29 +1,27 @@
 package com.gmail.nossr50.config.mods;
 
+import com.gmail.nossr50.config.ConfigLoader;
+import com.gmail.nossr50.datatypes.mods.CustomBlock;
+import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
-import org.bukkit.Material;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.material.MaterialData;
-
-import com.gmail.nossr50.config.ConfigLoader;
-import com.gmail.nossr50.datatypes.mods.CustomBlock;
-
 public class CustomBlockConfig extends ConfigLoader {
     private boolean needsUpdate = false;
 
-    public List<MaterialData> customExcavationBlocks  = new ArrayList<MaterialData>();
-    public List<MaterialData> customHerbalismBlocks   = new ArrayList<MaterialData>();
-    public List<MaterialData> customMiningBlocks      = new ArrayList<MaterialData>();
-    public List<MaterialData> customOres              = new ArrayList<MaterialData>();
-    public List<MaterialData> customLogs              = new ArrayList<MaterialData>();
-    public List<MaterialData> customLeaves            = new ArrayList<MaterialData>();
-    public List<MaterialData> customAbilityBlocks     = new ArrayList<MaterialData>();
+    public List<Material> customExcavationBlocks  = new ArrayList<>();
+    public List<Material> customHerbalismBlocks   = new ArrayList<>();
+    public List<Material> customMiningBlocks      = new ArrayList<>();
+    public List<Material> customOres              = new ArrayList<>();
+    public List<Material> customLogs              = new ArrayList<>();
+    public List<Material> customLeaves            = new ArrayList<>();
+    public List<Material> customAbilityBlocks     = new ArrayList<>();
 
-    public HashMap<MaterialData, CustomBlock> customBlockMap = new HashMap<MaterialData, CustomBlock>();
+    public HashMap<Material, CustomBlock> customBlockMap = new HashMap<>();
 
     protected CustomBlockConfig(String fileName) {
         super("mods", fileName);
@@ -44,7 +42,7 @@ public class CustomBlockConfig extends ConfigLoader {
         }
     }
 
-    private void loadBlocks(String skillType, List<MaterialData> blockList) {
+    private void loadBlocks(String skillType, List<Material> blockList) {
         if (needsUpdate) {
             return;
         }
@@ -72,11 +70,8 @@ public class CustomBlockConfig extends ConfigLoader {
                 continue;
             }
 
-            byte blockData = (blockInfo.length == 2) ? Byte.valueOf(blockInfo[1]) : 0;
-            MaterialData blockMaterialData = new MaterialData(blockMaterial, blockData);
-
             if (blockList != null) {
-                blockList.add(blockMaterialData);
+                blockList.add(blockMaterial);
             }
 
             if (skillType.equals("Ability_Blocks")) {
@@ -87,20 +82,20 @@ public class CustomBlockConfig extends ConfigLoader {
             int smeltingXp = 0;
 
             if (skillType.equals("Mining") && config.getBoolean(skillType + "." + blockName + ".Is_Ore")) {
-                customOres.add(blockMaterialData);
+                customOres.add(blockMaterial);
                 smeltingXp = config.getInt(skillType + "." + blockName + ".Smelting_XP_Gain", xp / 10);
             }
             else if (skillType.equals("Woodcutting")) {
                 if (config.getBoolean(skillType + "." + blockName + ".Is_Log")) {
-                    customLogs.add(blockMaterialData);
+                    customLogs.add(blockMaterial);
                 }
                 else {
-                    customLeaves.add(blockMaterialData);
+                    customLeaves.add(blockMaterial);
                     xp = 0; // Leaves don't grant XP
                 }
             }
 
-            customBlockMap.put(blockMaterialData, new CustomBlock(xp, config.getBoolean(skillType + "." + blockName + ".Double_Drops_Enabled"), smeltingXp));
+            customBlockMap.put(blockMaterial, new CustomBlock(xp, config.getBoolean(skillType + "." + blockName + ".Double_Drops_Enabled"), smeltingXp));
         }
     }
 }

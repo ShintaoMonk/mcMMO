@@ -1,9 +1,8 @@
 package com.gmail.nossr50.skills.salvage.salvageables;
 
-import org.bukkit.Material;
-
 import com.gmail.nossr50.datatypes.skills.ItemType;
 import com.gmail.nossr50.datatypes.skills.MaterialType;
+import org.bukkit.Material;
 
 public interface Salvageable {
     /**
@@ -19,13 +18,6 @@ public interface Salvageable {
      * @return the material of the salvage drop
      */
     public Material getSalvageMaterial();
-
-    /**
-     * Gets the metadata byte value of the items dropped when salvaging this item
-     *
-     * @return the byte metadata of the salvage drop
-     */
-    public byte getSalvageMaterialMetadata();
 
     /**
      * Gets the ItemType value for this salvageable item

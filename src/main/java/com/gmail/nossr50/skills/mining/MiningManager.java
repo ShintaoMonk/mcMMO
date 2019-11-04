@@ -1,54 +1,66 @@
 package com.gmail.nossr50.skills.mining;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-
+import com.gmail.nossr50.config.AdvancedConfig;
+import com.gmail.nossr50.config.Config;
+import com.gmail.nossr50.datatypes.experience.XPGainReason;
+import com.gmail.nossr50.datatypes.interactions.NotificationType;
+import com.gmail.nossr50.datatypes.player.McMMOPlayer;
+import com.gmail.nossr50.datatypes.skills.PrimarySkillType;
+import com.gmail.nossr50.datatypes.skills.SubSkillType;
+import com.gmail.nossr50.datatypes.skills.SuperAbilityType;
+import com.gmail.nossr50.mcMMO;
+import com.gmail.nossr50.runnables.skills.AbilityCooldownTask;
+import com.gmail.nossr50.skills.SkillManager;
+import com.gmail.nossr50.util.*;
+import com.gmail.nossr50.util.player.NotificationManager;
+import com.gmail.nossr50.util.random.RandomChanceUtil;
+import com.gmail.nossr50.util.skills.RankUtils;
+import com.gmail.nossr50.util.skills.SkillUtils;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TNTPrimed;
+import org.bukkit.inventory.ItemStack;
 
-import com.gmail.nossr50.mcMMO;
-import com.gmail.nossr50.config.Config;
-import com.gmail.nossr50.datatypes.player.McMMOPlayer;
-import com.gmail.nossr50.datatypes.skills.AbilityType;
-import com.gmail.nossr50.datatypes.skills.SecondaryAbility;
-import com.gmail.nossr50.datatypes.skills.SkillType;
-import com.gmail.nossr50.datatypes.skills.XPGainReason;
-import com.gmail.nossr50.locale.LocaleLoader;
-import com.gmail.nossr50.runnables.skills.AbilityCooldownTask;
-import com.gmail.nossr50.skills.SkillManager;
-import com.gmail.nossr50.skills.mining.BlastMining.Tier;
-import com.gmail.nossr50.util.BlockUtils;
-import com.gmail.nossr50.util.EventUtils;
-import com.gmail.nossr50.util.Misc;
-import com.gmail.nossr50.util.Permissions;
-import com.gmail.nossr50.util.skills.SkillUtils;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MiningManager extends SkillManager {
     public MiningManager(McMMOPlayer mcMMOPlayer) {
-        super(mcMMOPlayer, SkillType.MINING);
+        super(mcMMOPlayer, PrimarySkillType.MINING);
     }
 
     public boolean canUseDemolitionsExpertise() {
+        if(!RankUtils.hasUnlockedSubskill(getPlayer(), SubSkillType.MINING_DEMOLITIONS_EXPERTISE))
+            return false;
+
         return getSkillLevel() >= BlastMining.getDemolitionExpertUnlockLevel() && Permissions.demolitionsExpertise(getPlayer());
     }
 
     public boolean canDetonate() {
         Player player = getPlayer();
 
-        return canUseBlastMining() && player.isSneaking() && player.getInventory().getItemInMainHand().getType() == BlastMining.detonator && Permissions.remoteDetonation(player);
+        return canUseBlastMining() && player.isSneaking()
+                && (ItemUtils.isPickaxe(getPlayer().getInventory().getItemInMainHand()) || player.getInventory().getItemInMainHand().getType() == Config.getInstance().getDetonatorItem())
+                && Permissions.remoteDetonation(player);
     }
 
     public boolean canUseBlastMining() {
-        return getSkillLevel() >= BlastMining.Tier.ONE.getLevel();
+        //Not checking permissions?
+        return RankUtils.hasUnlockedSubskill(getPlayer(), SubSkillType.MINING_BLAST_MINING);
     }
 
     public boolean canUseBiggerBombs() {
+        if(!RankUtils.hasUnlockedSubskill(getPlayer(), SubSkillType.MINING_BIGGER_BOMBS))
+            return false;
+
         return getSkillLevel() >= BlastMining.getBiggerBombsUnlockLevel() && Permissions.biggerBombs(getPlayer());
+    }
+
+    public boolean canDoubleDrop() {
+        return RankUtils.hasUnlockedSubskill(getPlayer(), SubSkillType.MINING_DOUBLE_DROPS) && Permissions.isSubSkillEnabled(getPlayer(), SubSkillType.MINING_DOUBLE_DROPS);
     }
 
     /**
@@ -61,31 +73,25 @@ public class MiningManager extends SkillManager {
 
         applyXpGain(Mining.getBlockXp(blockState), XPGainReason.PVE);
 
-        if (!Permissions.secondaryAbilityEnabled(player, SecondaryAbility.MINING_DOUBLE_DROPS)) {
+        if (!Permissions.isSubSkillEnabled(player, SubSkillType.MINING_DOUBLE_DROPS)) {
             return;
         }
-
-        Material material = blockState.getType();
 
         if (mcMMOPlayer.getAbilityMode(skill.getAbility())) {
             SkillUtils.handleDurabilityChange(getPlayer().getInventory().getItemInMainHand(), Config.getInstance().getAbilityToolDamage());
         }
 
-        if ((mcMMO.getModManager().isCustomMiningBlock(blockState) && !mcMMO.getModManager().getBlock(blockState).isDoubleDropEnabled()) || material != Material.GLOWING_REDSTONE_ORE && !Config.getInstance().getDoubleDropsEnabled(skill, material)) {
+        if(!Config.getInstance().getDoubleDropsEnabled(PrimarySkillType.MINING, blockState.getType()) || !canDoubleDrop())
             return;
-        }
 
         boolean silkTouch = player.getInventory().getItemInMainHand().containsEnchantment(Enchantment.SILK_TOUCH);
 
-        for (int i = mcMMOPlayer.getAbilityMode(skill.getAbility()) ? 2 : 1; i != 0; i--) {
-            if (SkillUtils.activationSuccessful(SecondaryAbility.MINING_DOUBLE_DROPS, getPlayer(), getSkillLevel(), activationChance)) {
-                if (silkTouch) {
-                    Mining.handleSilkTouchDrops(blockState);
-                }
-                else {
-                    Mining.handleMiningDrops(blockState);
-                }
-            }
+        if(silkTouch && !AdvancedConfig.getInstance().getDoubleDropSilkTouchEnabled())
+            return;
+
+        //TODO: Make this readable
+        if (RandomChanceUtil.checkRandomChanceExecutionSuccess(getPlayer(), SubSkillType.MINING_DOUBLE_DROPS, true)) {
+            BlockUtils.markDropsAsBonus(blockState, mcMMOPlayer.getAbilityMode(skill.getAbility()));
         }
     }
 
@@ -94,24 +100,26 @@ public class MiningManager extends SkillManager {
      */
     public void remoteDetonation() {
         Player player = getPlayer();
-        Block targetBlock = player.getTargetBlock((HashSet<Material>) BlockUtils.getTransparentBlocks(), BlastMining.MAXIMUM_REMOTE_DETONATION_DISTANCE);
+        Block targetBlock = player.getTargetBlock(BlockUtils.getTransparentBlocks(), BlastMining.MAXIMUM_REMOTE_DETONATION_DISTANCE);
 
-        if (targetBlock.getType() != Material.TNT || !EventUtils.simulateBlockBreak(targetBlock, player, true) || !blastMiningCooldownOver()) {
+        //Blast mining cooldown check needs to be first so the player can be messaged
+        if (!blastMiningCooldownOver() || targetBlock.getType() != Material.TNT || !EventUtils.simulateBlockBreak(targetBlock, player, true)) {
             return;
         }
 
         TNTPrimed tnt = player.getWorld().spawn(targetBlock.getLocation(), TNTPrimed.class);
 
-        SkillUtils.sendSkillMessage(player, AbilityType.BLAST_MINING.getAbilityPlayer(player));
-        player.sendMessage(LocaleLoader.getString("Mining.Blast.Boom"));
+        //SkillUtils.sendSkillMessage(player, SuperAbilityType.BLAST_MINING.getAbilityPlayer(player));
+        NotificationManager.sendPlayerInformation(player, NotificationType.SUPER_ABILITY, "Mining.Blast.Boom");
+        //player.sendMessage(LocaleLoader.getString("Mining.Blast.Boom"));
 
         tnt.setMetadata(mcMMO.tntMetadataKey, mcMMOPlayer.getPlayerMetadata());
         tnt.setFuseTicks(0);
         targetBlock.setType(Material.AIR);
 
-        mcMMOPlayer.setAbilityDATS(AbilityType.BLAST_MINING, System.currentTimeMillis());
-        mcMMOPlayer.setAbilityInformed(AbilityType.BLAST_MINING, false);
-        new AbilityCooldownTask(mcMMOPlayer, AbilityType.BLAST_MINING).runTaskLaterAsynchronously(mcMMO.p, AbilityType.BLAST_MINING.getCooldown() * Misc.TICK_CONVERSION_FACTOR);
+        mcMMOPlayer.setAbilityDATS(SuperAbilityType.BLAST_MINING, System.currentTimeMillis());
+        mcMMOPlayer.setAbilityInformed(SuperAbilityType.BLAST_MINING, false);
+        new AbilityCooldownTask(mcMMOPlayer, SuperAbilityType.BLAST_MINING).runTaskLater(mcMMO.p, SuperAbilityType.BLAST_MINING.getCooldown() * Misc.TICK_CONVERSION_FACTOR);
     }
 
     /**
@@ -148,7 +156,7 @@ public class MiningManager extends SkillManager {
                     xp += Mining.getBlockXp(blockState);
                 }
 
-                Misc.dropItem(Misc.getBlockCenter(blockState), blockState.getData().toItemStack(1)); // Initial block that would have been dropped
+                Misc.dropItem(Misc.getBlockCenter(blockState), new ItemStack(blockState.getType())); // Initial block that would have been dropped
 
                 if (!mcMMO.getPlaceStore().isTrue(blockState)) {
                     for (int i = 1; i < dropMultiplier; i++) {
@@ -189,15 +197,7 @@ public class MiningManager extends SkillManager {
      * @return the Blast Mining tier
      */
     public int getBlastMiningTier() {
-        int skillLevel = getSkillLevel();
-
-        for (Tier tier : Tier.values()) {
-            if (skillLevel >= tier.getLevel()) {
-                return tier.toNumerical();
-            }
-        }
-
-        return 0;
+        return RankUtils.getRank(getPlayer(), SubSkillType.MINING_BLAST_MINING);
     }
 
     /**
@@ -206,15 +206,15 @@ public class MiningManager extends SkillManager {
      * @return the Blast Mining tier
      */
     public double getOreBonus() {
-        int skillLevel = getSkillLevel();
+        return getOreBonus(getBlastMiningTier());
+    }
 
-        for (Tier tier : Tier.values()) {
-            if (skillLevel >= tier.getLevel()) {
-                return tier.getOreBonus();
-            }
-        }
+    public static double getOreBonus(int rank) {
+        return AdvancedConfig.getInstance().getOreBonus(rank);
+    }
 
-        return 0;
+    public static double getDebrisReduction(int rank) {
+        return AdvancedConfig.getInstance().getDebrisReduction(rank);
     }
 
     /**
@@ -223,15 +223,11 @@ public class MiningManager extends SkillManager {
      * @return the Blast Mining tier
      */
     public double getDebrisReduction() {
-        int skillLevel = getSkillLevel();
+        return getDebrisReduction(getBlastMiningTier());
+    }
 
-        for (Tier tier : Tier.values()) {
-            if (skillLevel >= tier.getLevel()) {
-                return tier.getDebrisReduction();
-            }
-        }
-
-        return 0;
+    public static int getDropMultiplier(int rank) {
+        return AdvancedConfig.getInstance().getDropMultiplier(rank);
     }
 
     /**
@@ -240,15 +236,7 @@ public class MiningManager extends SkillManager {
      * @return the Blast Mining tier
      */
     public int getDropMultiplier() {
-        int skillLevel = getSkillLevel();
-
-        for (Tier tier : Tier.values()) {
-            if (skillLevel >= tier.getLevel()) {
-                return tier.getDropMultiplier();
-            }
-        }
-
-        return 0;
+        return getDropMultiplier(getBlastMiningTier());
     }
 
     /**
@@ -257,15 +245,7 @@ public class MiningManager extends SkillManager {
      * @return the Blast Mining tier
      */
     public double getBlastRadiusModifier() {
-        int skillLevel = getSkillLevel();
-
-        for (Tier tier : Tier.values()) {
-            if (skillLevel >= tier.getLevel()) {
-                return tier.getBlastRadiusModifier();
-            }
-        }
-
-        return 0;
+        return BlastMining.getBlastRadiusModifier(getBlastMiningTier());
     }
 
     /**
@@ -274,22 +254,15 @@ public class MiningManager extends SkillManager {
      * @return the Blast Mining tier
      */
     public double getBlastDamageModifier() {
-        int skillLevel = getSkillLevel();
-
-        for (Tier tier : Tier.values()) {
-            if (skillLevel >= tier.getLevel()) {
-                return tier.getBlastDamageDecrease();
-            }
-        }
-
-        return 0;
+        return BlastMining.getBlastDamageDecrease(getBlastMiningTier());
     }
 
     private boolean blastMiningCooldownOver() {
-        int timeRemaining = mcMMOPlayer.calculateTimeRemaining(AbilityType.BLAST_MINING);
+        int timeRemaining = mcMMOPlayer.calculateTimeRemaining(SuperAbilityType.BLAST_MINING);
 
         if (timeRemaining > 0) {
-            getPlayer().sendMessage(LocaleLoader.getString("Skills.TooTired", timeRemaining));
+            //getPlayer().sendMessage(LocaleLoader.getString("Skills.TooTired", timeRemaining));
+            NotificationManager.sendPlayerInformation(getPlayer(), NotificationType.ABILITY_COOLDOWN, "Skills.TooTired", String.valueOf(timeRemaining));
             return false;
         }
 

@@ -1,26 +1,24 @@
 package com.gmail.nossr50.commands.player;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.gmail.nossr50.config.Config;
+import com.gmail.nossr50.datatypes.player.McMMOPlayer;
+import com.gmail.nossr50.datatypes.player.PlayerProfile;
+import com.gmail.nossr50.datatypes.skills.PrimarySkillType;
+import com.gmail.nossr50.locale.LocaleLoader;
+import com.gmail.nossr50.mcMMO;
+import com.gmail.nossr50.util.Permissions;
+import com.gmail.nossr50.util.commands.CommandUtils;
+import com.gmail.nossr50.util.player.UserManager;
+import com.gmail.nossr50.util.scoreboards.ScoreboardManager;
+import com.google.common.collect.ImmutableList;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
 
-import com.gmail.nossr50.mcMMO;
-import com.gmail.nossr50.config.Config;
-import com.gmail.nossr50.datatypes.player.McMMOPlayer;
-import com.gmail.nossr50.datatypes.player.PlayerProfile;
-import com.gmail.nossr50.datatypes.skills.SkillType;
-import com.gmail.nossr50.locale.LocaleLoader;
-import com.gmail.nossr50.util.Permissions;
-import com.gmail.nossr50.util.commands.CommandUtils;
-import com.gmail.nossr50.util.player.UserManager;
-import com.gmail.nossr50.util.scoreboards.ScoreboardManager;
-
-import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
+import java.util.List;
 
 public class InspectCommand implements TabExecutor {
     @Override
@@ -38,11 +36,7 @@ public class InspectCommand implements TabExecutor {
                         return true;
                     }
 
-                    if (CommandUtils.inspectOffline(sender, profile, Permissions.inspectOffline(sender))) {
-                        return true;
-                    }
-
-                    if (sender instanceof Player && Config.getInstance().getInspectUseBoard()) {
+                    if (Config.getInstance().getScoreboardsEnabled() && sender instanceof Player && Config.getInstance().getInspectUseBoard()) {
                         ScoreboardManager.enablePlayerInspectScoreboard((Player) sender, profile);
 
                         if (!Config.getInstance().getInspectUseChat()) {
@@ -53,17 +47,17 @@ public class InspectCommand implements TabExecutor {
                     sender.sendMessage(LocaleLoader.getString("Inspect.OfflineStats", playerName));
 
                     sender.sendMessage(LocaleLoader.getString("Stats.Header.Gathering"));
-                    for (SkillType skill : SkillType.GATHERING_SKILLS) {
+                    for (PrimarySkillType skill : PrimarySkillType.GATHERING_SKILLS) {
                         sender.sendMessage(CommandUtils.displaySkill(profile, skill));
                     }
 
                     sender.sendMessage(LocaleLoader.getString("Stats.Header.Combat"));
-                    for (SkillType skill : SkillType.COMBAT_SKILLS) {
+                    for (PrimarySkillType skill : PrimarySkillType.COMBAT_SKILLS) {
                         sender.sendMessage(CommandUtils.displaySkill(profile, skill));
                     }
 
                     sender.sendMessage(LocaleLoader.getString("Stats.Header.Misc"));
-                    for (SkillType skill : SkillType.MISC_SKILLS) {
+                    for (PrimarySkillType skill : PrimarySkillType.MISC_SKILLS) {
                         sender.sendMessage(CommandUtils.displaySkill(profile, skill));
                     }
 
@@ -72,16 +66,14 @@ public class InspectCommand implements TabExecutor {
                     Player target = mcMMOPlayer.getPlayer();
 
                     if (CommandUtils.hidden(sender, target, Permissions.inspectHidden(sender))) {
-                        if (!Permissions.inspectOffline(sender)) {
-                            sender.sendMessage(LocaleLoader.getString("Inspect.Offline"));
-                            return true;
-                        }
+                        sender.sendMessage(LocaleLoader.getString("Inspect.Offline"));
+                        return true;
                     }
                     else if (CommandUtils.tooFar(sender, target, Permissions.inspectFar(sender))) {
                         return true;
                     }
 
-                    if (sender instanceof Player && Config.getInstance().getInspectUseBoard()) {
+                    if (Config.getInstance().getScoreboardsEnabled() && sender instanceof Player && Config.getInstance().getInspectUseBoard()) {
                         ScoreboardManager.enablePlayerInspectScoreboard((Player) sender, mcMMOPlayer.getProfile());
 
                         if (!Config.getInstance().getInspectUseChat()) {

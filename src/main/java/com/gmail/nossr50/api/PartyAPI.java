@@ -1,19 +1,17 @@
 package com.gmail.nossr50.api;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.UUID;
-
+import com.gmail.nossr50.config.Config;
+import com.gmail.nossr50.datatypes.interactions.NotificationType;
+import com.gmail.nossr50.datatypes.party.Party;
+import com.gmail.nossr50.datatypes.party.PartyLeader;
+import com.gmail.nossr50.mcMMO;
+import com.gmail.nossr50.party.PartyManager;
+import com.gmail.nossr50.util.player.NotificationManager;
+import com.gmail.nossr50.util.player.UserManager;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
-import com.gmail.nossr50.mcMMO;
-import com.gmail.nossr50.datatypes.party.Party;
-import com.gmail.nossr50.datatypes.party.PartyLeader;
-import com.gmail.nossr50.party.PartyManager;
-import com.gmail.nossr50.util.player.UserManager;
+import java.util.*;
 
 public final class PartyAPI {
     private PartyAPI() {}
@@ -43,6 +41,9 @@ public final class PartyAPI {
      * @return true if the player is in a party, false otherwise
      */
     public static boolean inParty(Player player) {
+        if(UserManager.getPlayer(player) == null)
+            return false;
+
         return UserManager.getPlayer(player).inParty();
     }
 
@@ -77,8 +78,54 @@ public final class PartyAPI {
      *
      * @param player The player to add to the party
      * @param partyName The party to add the player to
+     * @deprecated parties can have limits, use the other method
      */
+    @Deprecated
     public static void addToParty(Player player, String partyName) {
+        //Check if player profile is loaded
+        if(UserManager.getPlayer(player) == null)
+            return;
+
+        Party party = PartyManager.getParty(partyName);
+
+        if (party == null) {
+            party = new Party(new PartyLeader(player.getUniqueId(), player.getName()), partyName);
+        } else {
+            if(PartyManager.isPartyFull(player, party))
+            {
+                NotificationManager.sendPlayerInformation(player, NotificationType.PARTY_MESSAGE, "Commands.Party.PartyFull", party.toString());
+                return;
+            }
+        }
+
+        PartyManager.addToParty(UserManager.getPlayer(player), party);
+    }
+
+    /**
+     * The max party size of the server
+     * 0 or less for no size limit
+     * @return the max party size on this server
+     */
+    public static int getMaxPartySize()
+    {
+        return Config.getInstance().getPartyMaxSize();
+    }
+
+    /**
+     * Add a player to a party.
+     * </br>
+     * This function is designed for API usage.
+     *
+     * @param player The player to add to the party
+     * @param partyName The party to add the player to
+     * @param bypassLimit if true bypasses party size limits
+     */
+    //TODO: bypasslimit not used?
+    public static void addToParty(Player player, String partyName, boolean bypassLimit) {
+        //Check if player profile is loaded
+        if(UserManager.getPlayer(player) == null)
+            return;
+
         Party party = PartyManager.getParty(partyName);
 
         if (party == null) {
@@ -96,6 +143,10 @@ public final class PartyAPI {
      * @param player The player to remove
      */
     public static void removeFromParty(Player player) {
+        //Check if player profile is loaded
+        if(UserManager.getPlayer(player) == null)
+            return;
+
         PartyManager.removeFromParty(UserManager.getPlayer(player));
     }
 

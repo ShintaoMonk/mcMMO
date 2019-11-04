@@ -1,51 +1,37 @@
 package com.gmail.nossr50.commands.skills;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.bukkit.entity.Player;
-
-import com.gmail.nossr50.datatypes.skills.SecondaryAbility;
-import com.gmail.nossr50.datatypes.skills.SkillType;
+import com.gmail.nossr50.datatypes.skills.PrimarySkillType;
+import com.gmail.nossr50.datatypes.skills.SubSkillType;
 import com.gmail.nossr50.locale.LocaleLoader;
 import com.gmail.nossr50.skills.salvage.Salvage;
 import com.gmail.nossr50.skills.salvage.SalvageManager;
-import com.gmail.nossr50.util.Permissions;
+import com.gmail.nossr50.util.TextComponentFactory;
 import com.gmail.nossr50.util.player.UserManager;
+import com.gmail.nossr50.util.skills.RankUtils;
+import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.entity.Player;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SalvageCommand extends SkillCommand {
-    private boolean canAdvancedSalvage;
+    private boolean canScrapCollector;
     private boolean canArcaneSalvage;
 
     public SalvageCommand() {
-        super(SkillType.SALVAGE);
+        super(PrimarySkillType.SALVAGE);
     }
 
     @Override
-    protected void dataCalculations(Player player, float skillValue, boolean isLucky) {
+    protected void dataCalculations(Player player, float skillValue) {
         // TODO Auto-generated method stub
 
     }
 
     @Override
     protected void permissionsCheck(Player player) {
-        canAdvancedSalvage = Permissions.secondaryAbilityEnabled(player, SecondaryAbility.ADVANCED_SALVAGE);
-        canArcaneSalvage = Permissions.secondaryAbilityEnabled(player, SecondaryAbility.ARCANE_SALVAGE);
-    }
-
-    @Override
-    protected List<String> effectsDisplay() {
-        List<String> messages = new ArrayList<String>();
-
-        if (canAdvancedSalvage) {
-            messages.add(LocaleLoader.getString("Effects.Template", LocaleLoader.getString("Salvage.Effect.0"), LocaleLoader.getString("Salvage.Effect.1")));
-        }
-
-        if (canArcaneSalvage) {
-            messages.add(LocaleLoader.getString("Effects.Template", LocaleLoader.getString("Salvage.Effect.2"), LocaleLoader.getString("Salvage.Effect.3")));
-        }
-
-        return messages;
+        canScrapCollector = canUseSubskill(player, SubSkillType.SALVAGE_SCRAP_COLLECTOR);
+        canArcaneSalvage = canUseSubskill(player, SubSkillType.SALVAGE_ARCANE_SALVAGE);
     }
 
     @Override
@@ -53,17 +39,17 @@ public class SalvageCommand extends SkillCommand {
         List<String> messages = new ArrayList<String>();
         SalvageManager salvageManager = UserManager.getPlayer(player).getSalvageManager();
 
-        if (canAdvancedSalvage) {
-            if (skillValue < Salvage.advancedSalvageUnlockLevel) {
-                messages.add(LocaleLoader.getString("Ability.Generic.Template.Lock", LocaleLoader.getString("Salvage.Ability.Locked.0", Salvage.advancedSalvageUnlockLevel)));
-            }
-            else {
-                messages.add(LocaleLoader.getString("Ability.Generic.Template", LocaleLoader.getString("Salvage.Ability.Bonus.0"), LocaleLoader.getString("Salvage.Ability.Bonus.1", percent.format(salvageManager.getMaxSalvagePercentage()))));
-            }
+        if (canScrapCollector) {
+            messages.add(getStatMessage(false, true,
+                    SubSkillType.SALVAGE_SCRAP_COLLECTOR,
+                    String.valueOf(RankUtils.getRank(player, SubSkillType.SALVAGE_SCRAP_COLLECTOR)),
+                    RankUtils.getHighestRankStr(SubSkillType.SALVAGE_SCRAP_COLLECTOR)));
         }
 
         if (canArcaneSalvage) {
-            messages.add(LocaleLoader.getString("Salvage.Arcane.Rank", salvageManager.getArcaneSalvageRank(), Salvage.Tier.values().length));
+            messages.add(getStatMessage(false, true, SubSkillType.SALVAGE_ARCANE_SALVAGE,
+                    String.valueOf(salvageManager.getArcaneSalvageRank()),
+                    String.valueOf(RankUtils.getHighestRank(SubSkillType.SALVAGE_ARCANE_SALVAGE))));
 
             if (Salvage.arcaneSalvageEnchantLoss) {
                 messages.add(LocaleLoader.getString("Ability.Generic.Template", LocaleLoader.getString("Salvage.Arcane.ExtractFull"), percent.format(salvageManager.getExtractFullEnchantChance() / 100)));
@@ -75,5 +61,14 @@ public class SalvageCommand extends SkillCommand {
         }
 
         return messages;
+    }
+
+    @Override
+    protected List<TextComponent> getTextComponents(Player player) {
+        List<TextComponent> textComponents = new ArrayList<>();
+
+        TextComponentFactory.getSubSkillTextComponents(player, textComponents, PrimarySkillType.SALVAGE);
+
+        return textComponents;
     }
 }

@@ -1,22 +1,21 @@
 package com.gmail.nossr50.runnables.skills;
 
+import com.gmail.nossr50.datatypes.skills.PrimarySkillType;
+import com.gmail.nossr50.datatypes.skills.SubSkillType;
+import com.gmail.nossr50.events.skills.alchemy.McMMOPlayerBrewEvent;
+import com.gmail.nossr50.events.skills.alchemy.McMMOPlayerCatalysisEvent;
+import com.gmail.nossr50.mcMMO;
+import com.gmail.nossr50.skills.alchemy.Alchemy;
+import com.gmail.nossr50.skills.alchemy.AlchemyPotionBrewer;
+import com.gmail.nossr50.util.Misc;
+import com.gmail.nossr50.util.Permissions;
+import com.gmail.nossr50.util.player.UserManager;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.BrewingStand;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
-
-import com.gmail.nossr50.mcMMO;
-import com.gmail.nossr50.datatypes.skills.SecondaryAbility;
-import com.gmail.nossr50.datatypes.skills.SkillType;
-import com.gmail.nossr50.events.skills.alchemy.McMMOPlayerBrewEvent;
-import com.gmail.nossr50.events.skills.alchemy.McMMOPlayerCatalysisEvent;
-import com.gmail.nossr50.skills.alchemy.Alchemy;
-import com.gmail.nossr50.skills.alchemy.AlchemyPotionBrewer;
-import com.gmail.nossr50.util.Misc;
-import com.gmail.nossr50.util.Permissions;
-import com.gmail.nossr50.util.player.UserManager;
 
 public class AlchemyBrewTask extends BukkitRunnable {
     private static double DEFAULT_BREW_SPEED = 1.0;
@@ -38,8 +37,12 @@ public class AlchemyBrewTask extends BukkitRunnable {
         brewSpeed = DEFAULT_BREW_SPEED;
         brewTimer = DEFAULT_BREW_TICKS;
 
-        if (player != null && !Misc.isNPCEntity(player) && Permissions.secondaryAbilityEnabled(player, SecondaryAbility.CATALYSIS)) {
-            double catalysis = UserManager.getPlayer(player).getAlchemyManager().calculateBrewSpeed(Permissions.lucky(player, SkillType.ALCHEMY));
+        if (player != null
+                && !Misc.isNPCEntityExcludingVillagers(player)
+                && Permissions.isSubSkillEnabled(player, SubSkillType.ALCHEMY_CATALYSIS)
+                && UserManager.getPlayer(player) != null) {
+
+            double catalysis = UserManager.getPlayer(player).getAlchemyManager().calculateBrewSpeed(Permissions.lucky(player, PrimarySkillType.ALCHEMY));
 
             McMMOPlayerCatalysisEvent event = new McMMOPlayerCatalysisEvent(player, catalysis);
             mcMMO.p.getServer().getPluginManager().callEvent(event);

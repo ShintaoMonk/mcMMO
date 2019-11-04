@@ -1,21 +1,21 @@
 package com.gmail.nossr50.party;
 
-import java.util.List;
-
-import org.bukkit.entity.Item;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-
 import com.gmail.nossr50.config.Config;
 import com.gmail.nossr50.config.party.ItemWeightConfig;
+import com.gmail.nossr50.datatypes.experience.XPGainReason;
+import com.gmail.nossr50.datatypes.experience.XPGainSource;
 import com.gmail.nossr50.datatypes.party.ItemShareType;
 import com.gmail.nossr50.datatypes.party.Party;
 import com.gmail.nossr50.datatypes.party.ShareMode;
 import com.gmail.nossr50.datatypes.player.McMMOPlayer;
-import com.gmail.nossr50.datatypes.skills.SkillType;
-import com.gmail.nossr50.datatypes.skills.XPGainReason;
+import com.gmail.nossr50.datatypes.skills.PrimarySkillType;
 import com.gmail.nossr50.util.Misc;
 import com.gmail.nossr50.util.player.UserManager;
+import org.bukkit.entity.Item;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+
+import java.util.List;
 
 public final class ShareHandler {
     private ShareHandler() {}
@@ -25,17 +25,17 @@ public final class ShareHandler {
      *
      * @param xp Xp without party sharing
      * @param mcMMOPlayer Player initiating the Xp gain
-     * @param skillType Skill being used
+     * @param primarySkillType Skill being used
      * @return True is the xp has been shared
      */
-    public static boolean handleXpShare(float xp, McMMOPlayer mcMMOPlayer, SkillType skillType, XPGainReason xpGainReason) {
+    public static boolean handleXpShare(float xp, McMMOPlayer mcMMOPlayer, PrimarySkillType primarySkillType, XPGainReason xpGainReason) {
         Party party = mcMMOPlayer.getParty();
 
         if (party.getXpShareMode() != ShareMode.EQUAL) {
             return false;
         }
 
-        List<Player> nearMembers = PartyManager.getNearMembers(mcMMOPlayer);
+        List<Player> nearMembers = PartyManager.getNearVisibleMembers(mcMMOPlayer);
 
         if (nearMembers.isEmpty()) {
             return false;
@@ -48,7 +48,13 @@ public final class ShareHandler {
         float splitXp = (float) (xp / partySize * shareBonus);
 
         for (Player member : nearMembers) {
-            UserManager.getPlayer(member).beginUnsharedXpGain(skillType, splitXp, xpGainReason);
+            //Profile not loaded
+            if(UserManager.getPlayer(member) == null)
+            {
+                continue;
+            }
+
+            UserManager.getPlayer(member).beginUnsharedXpGain(primarySkillType, splitXp, xpGainReason, XPGainSource.PARTY_MEMBERS);
         }
 
         return true;
@@ -105,6 +111,13 @@ public final class ShareHandler {
 
                     for (Player member : nearMembers) {
                         McMMOPlayer mcMMOMember = UserManager.getPlayer(member);
+
+                        //Profile not loaded
+                        if(UserManager.getPlayer(member) == null)
+                        {
+                            continue;
+                        }
+
                         int itemShareModifier = mcMMOMember.getItemShareModifier();
                         int diceRoll = Misc.getRandom().nextInt(itemShareModifier);
 
@@ -157,7 +170,7 @@ public final class ShareHandler {
 
     private static void awardDrop(Player winningPlayer, ItemStack drop) {
         if (winningPlayer.getInventory().addItem(drop).size() != 0) {
-            winningPlayer.getWorld().dropItemNaturally(winningPlayer.getLocation(), drop);
+            winningPlayer.getWorld().dropItem(winningPlayer.getLocation(), drop);
         }
 
         winningPlayer.updateInventory();

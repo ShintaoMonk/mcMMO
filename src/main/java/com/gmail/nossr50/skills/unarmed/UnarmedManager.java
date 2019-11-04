@@ -1,82 +1,105 @@
 package com.gmail.nossr50.skills.unarmed;
 
+import com.gmail.nossr50.config.AdvancedConfig;
+import com.gmail.nossr50.datatypes.interactions.NotificationType;
+import com.gmail.nossr50.datatypes.player.McMMOPlayer;
+import com.gmail.nossr50.datatypes.skills.PrimarySkillType;
+import com.gmail.nossr50.datatypes.skills.SubSkillType;
+import com.gmail.nossr50.datatypes.skills.SuperAbilityType;
+import com.gmail.nossr50.datatypes.skills.ToolType;
+import com.gmail.nossr50.mcMMO;
+import com.gmail.nossr50.skills.SkillManager;
+import com.gmail.nossr50.util.EventUtils;
+import com.gmail.nossr50.util.ItemUtils;
+import com.gmail.nossr50.util.Misc;
+import com.gmail.nossr50.util.Permissions;
+import com.gmail.nossr50.util.player.NotificationManager;
+import com.gmail.nossr50.util.player.UserManager;
+import com.gmail.nossr50.util.random.RandomChanceUtil;
+import com.gmail.nossr50.util.skills.RankUtils;
+import com.gmail.nossr50.util.skills.SkillActivationType;
 import org.bukkit.Material;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.material.MaterialData;
-import org.bukkit.material.SmoothBrick;
-
-import com.gmail.nossr50.mcMMO;
-import com.gmail.nossr50.config.AdvancedConfig;
-import com.gmail.nossr50.datatypes.player.McMMOPlayer;
-import com.gmail.nossr50.datatypes.skills.AbilityType;
-import com.gmail.nossr50.datatypes.skills.SecondaryAbility;
-import com.gmail.nossr50.datatypes.skills.SkillType;
-import com.gmail.nossr50.datatypes.skills.ToolType;
-import com.gmail.nossr50.locale.LocaleLoader;
-import com.gmail.nossr50.skills.SkillManager;
-import com.gmail.nossr50.util.EventUtils;
-import com.gmail.nossr50.util.ItemUtils;
-import com.gmail.nossr50.util.Misc;
-import com.gmail.nossr50.util.Permissions;
-import com.gmail.nossr50.util.player.UserManager;
-import com.gmail.nossr50.util.skills.SkillUtils;
 
 public class UnarmedManager extends SkillManager {
+    private long lastAttacked;
+    private long attackInterval;
+
     public UnarmedManager(McMMOPlayer mcMMOPlayer) {
-        super(mcMMOPlayer, SkillType.UNARMED);
+        super(mcMMOPlayer, PrimarySkillType.UNARMED);
+        initUnarmedPerPlayerVars();
     }
+
+    /**
+     * Inits variables used for each player for unarmed
+     */
+    private void initUnarmedPerPlayerVars() {
+        lastAttacked = 0;
+        attackInterval = 750;
+    }
+
 
     public boolean canActivateAbility() {
         return mcMMOPlayer.getToolPreparationMode(ToolType.FISTS) && Permissions.berserk(getPlayer());
     }
 
     public boolean canUseIronArm() {
-        return Permissions.secondaryAbilityEnabled(getPlayer(), SecondaryAbility.IRON_ARM);
+        if(!RankUtils.hasUnlockedSubskill(getPlayer(), SubSkillType.UNARMED_IRON_ARM_STYLE))
+            return false;
+
+        return Permissions.isSubSkillEnabled(getPlayer(), SubSkillType.UNARMED_IRON_ARM_STYLE);
     }
 
     public boolean canUseBerserk() {
-        return mcMMOPlayer.getAbilityMode(AbilityType.BERSERK) && Permissions.berserk(getPlayer());
+        return mcMMOPlayer.getAbilityMode(SuperAbilityType.BERSERK);
     }
 
     public boolean canDisarm(LivingEntity target) {
-        return target instanceof Player && ((Player) target).getInventory().getItemInMainHand().getType() != Material.AIR && Permissions.secondaryAbilityEnabled(getPlayer(), SecondaryAbility.DISARM);
+        if(!RankUtils.hasUnlockedSubskill(getPlayer(), SubSkillType.UNARMED_DISARM))
+            return false;
+
+        return target instanceof Player && ((Player) target).getInventory().getItemInMainHand().getType() != Material.AIR && Permissions.isSubSkillEnabled(getPlayer(), SubSkillType.UNARMED_DISARM);
     }
 
     public boolean canDeflect() {
+        if(!RankUtils.hasUnlockedSubskill(getPlayer(), SubSkillType.UNARMED_ARROW_DEFLECT))
+            return false;
+
         Player player = getPlayer();
 
-        return ItemUtils.isUnarmed(player.getInventory().getItemInMainHand()) && Permissions.secondaryAbilityEnabled(getPlayer(), SecondaryAbility.DEFLECT);
+        return ItemUtils.isUnarmed(player.getInventory().getItemInMainHand()) && Permissions.isSubSkillEnabled(getPlayer(), SubSkillType.UNARMED_ARROW_DEFLECT);
     }
 
     public boolean canUseBlockCracker() {
-        return Permissions.secondaryAbilityEnabled(getPlayer(), SecondaryAbility.BLOCK_CRACKER);
+        if(!RankUtils.hasUnlockedSubskill(getPlayer(), SubSkillType.UNARMED_BLOCK_CRACKER))
+            return false;
+
+        return Permissions.isSubSkillEnabled(getPlayer(), SubSkillType.UNARMED_BLOCK_CRACKER);
     }
 
     public boolean blockCrackerCheck(BlockState blockState) {
-        if (!SkillUtils.activationSuccessful(SecondaryAbility.BLOCK_CRACKER, getPlayer())) {
+        if (!RandomChanceUtil.isActivationSuccessful(SkillActivationType.ALWAYS_FIRES, SubSkillType.UNARMED_BLOCK_CRACKER, getPlayer())) {
             return false;
         }
 
-        MaterialData data = blockState.getData();
-
         switch (blockState.getType()) {
-            case SMOOTH_BRICK:
+            case STONE_BRICKS:
                 if (!Unarmed.blockCrackerSmoothBrick) {
                     return false;
                 }
 
-                // Yes, this is awkward, but it's the *right* way to do it.
-                SmoothBrick smoothBrick = (SmoothBrick) data;
-
-                if (smoothBrick.getMaterial() != Material.STONE) {
+                blockState.getBlock().setType(Material.CRACKED_STONE_BRICKS);
+                return true;
+            case INFESTED_STONE_BRICKS:
+                if (!Unarmed.blockCrackerSmoothBrick) {
                     return false;
                 }
 
-                smoothBrick.setMaterial(Material.COBBLESTONE);
+                blockState.getBlock().setType(Material.INFESTED_CRACKED_STONE_BRICKS);
                 return true;
 
             default:
@@ -90,10 +113,13 @@ public class UnarmedManager extends SkillManager {
      * @param defender The defending player
      */
     public void disarmCheck(Player defender) {
-        if (SkillUtils.activationSuccessful(SecondaryAbility.DISARM, getPlayer(), getSkillLevel(), activationChance) && !hasIronGrip(defender)) {
+        if (RandomChanceUtil.isActivationSuccessful(SkillActivationType.RANDOM_LINEAR_100_SCALE_WITH_CAP, SubSkillType.UNARMED_DISARM, getPlayer()) && !hasIronGrip(defender)) {
             if (EventUtils.callDisarmEvent(defender).isCancelled()) {
                 return;
             }
+
+            if(UserManager.getPlayer(defender) == null)
+                return;
 
             Item item = Misc.dropItem(defender.getLocation(), defender.getInventory().getItemInMainHand());
 
@@ -102,7 +128,7 @@ public class UnarmedManager extends SkillManager {
             }
 
             defender.getInventory().setItemInMainHand(new ItemStack(Material.AIR));
-            defender.sendMessage(LocaleLoader.getString("Skills.Disarmed"));
+            NotificationManager.sendPlayerInformation(defender, NotificationType.SUBSKILL_MESSAGE, "Skills.Disarmed");
         }
     }
 
@@ -110,8 +136,8 @@ public class UnarmedManager extends SkillManager {
      * Check for arrow deflection.
      */
     public boolean deflectCheck() {
-        if (SkillUtils.activationSuccessful(SecondaryAbility.DEFLECT, getPlayer(), getSkillLevel(), activationChance)) {
-            getPlayer().sendMessage(LocaleLoader.getString("Combat.ArrowDeflect"));
+        if (RandomChanceUtil.isActivationSuccessful(SkillActivationType.RANDOM_LINEAR_100_SCALE_WITH_CAP, SubSkillType.UNARMED_ARROW_DEFLECT, getPlayer())) {
+            NotificationManager.sendPlayerInformation(getPlayer(), NotificationType.SUBSKILL_MESSAGE, "Combat.ArrowDeflect");
             return true;
         }
 
@@ -133,11 +159,26 @@ public class UnarmedManager extends SkillManager {
      * Handle the effects of the Iron Arm ability
      */
     public double ironArm() {
-        if (!SkillUtils.activationSuccessful(SecondaryAbility.IRON_ARM, getPlayer())) {
+        if (!RandomChanceUtil.isActivationSuccessful(SkillActivationType.ALWAYS_FIRES, SubSkillType.UNARMED_IRON_ARM_STYLE, getPlayer())) {
             return 0;
         }
 
-        return Math.min(Unarmed.ironArmMinBonusDamage + (getSkillLevel() / Unarmed.ironArmIncreaseLevel), Unarmed.ironArmMaxBonusDamage);
+        return getIronArmDamage();
+    }
+
+    public boolean isPunchingCooldownOver() {
+        return (lastAttacked + attackInterval) <= System.currentTimeMillis();
+    }
+
+    public double getIronArmDamage() {
+        int rank = RankUtils.getRank(getPlayer(), SubSkillType.UNARMED_IRON_ARM_STYLE);
+
+        if(rank == 1)
+        {
+            return 4;
+        } else {
+            return 3 + (rank * 2);
+        }
     }
 
     /**
@@ -147,13 +188,31 @@ public class UnarmedManager extends SkillManager {
      * @return true if the defender was not disarmed, false otherwise
      */
     private boolean hasIronGrip(Player defender) {
-        if (!Misc.isNPCEntity(defender) && Permissions.secondaryAbilityEnabled(defender, SecondaryAbility.IRON_GRIP) && SkillUtils.activationSuccessful(SecondaryAbility.IRON_GRIP, defender, skill)) {
-            defender.sendMessage(LocaleLoader.getString("Unarmed.Ability.IronGrip.Defender"));
-            getPlayer().sendMessage(LocaleLoader.getString("Unarmed.Ability.IronGrip.Attacker"));
+        if (!Misc.isNPCEntityExcludingVillagers(defender)
+                && Permissions.isSubSkillEnabled(defender, SubSkillType.UNARMED_IRON_GRIP)
+                && RandomChanceUtil.isActivationSuccessful(SkillActivationType.RANDOM_LINEAR_100_SCALE_WITH_CAP, SubSkillType.UNARMED_IRON_GRIP, defender)) {
+            NotificationManager.sendPlayerInformation(defender, NotificationType.SUBSKILL_MESSAGE, "Unarmed.Ability.IronGrip.Defender");
+            NotificationManager.sendPlayerInformation(getPlayer(), NotificationType.SUBSKILL_MESSAGE, "Unarmed.Ability.IronGrip.Attacker");
 
             return true;
         }
 
         return false;
+    }
+
+    public long getLastAttacked() {
+        return lastAttacked;
+    }
+
+    public void setLastAttacked(long lastAttacked) {
+        this.lastAttacked = lastAttacked;
+    }
+
+    public long getAttackInterval() {
+        return attackInterval;
+    }
+
+    public void setAttackInterval(long attackInterval) {
+        this.attackInterval = attackInterval;
     }
 }

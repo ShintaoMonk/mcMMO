@@ -1,20 +1,19 @@
 package com.gmail.nossr50.events.skills.abilities;
 
+import com.gmail.nossr50.datatypes.skills.PrimarySkillType;
+import com.gmail.nossr50.datatypes.skills.SuperAbilityType;
+import com.gmail.nossr50.events.skills.McMMOPlayerSkillEvent;
 import org.bukkit.entity.Player;
 
-import com.gmail.nossr50.datatypes.skills.AbilityType;
-import com.gmail.nossr50.datatypes.skills.SkillType;
-import com.gmail.nossr50.events.skills.McMMOPlayerSkillEvent;
-
 public class McMMOPlayerAbilityEvent extends McMMOPlayerSkillEvent {
-    private AbilityType ability;
+    private SuperAbilityType ability;
 
-    protected McMMOPlayerAbilityEvent(Player player, SkillType skill) {
+    protected McMMOPlayerAbilityEvent(Player player, PrimarySkillType skill) {
         super(player, skill);
         ability = skill.getAbility();
     }
 
-    public AbilityType getAbility() {
+    public SuperAbilityType getAbility() {
         return ability;
     }
 }

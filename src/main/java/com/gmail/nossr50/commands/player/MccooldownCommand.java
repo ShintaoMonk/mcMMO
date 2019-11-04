@@ -1,21 +1,19 @@
 package com.gmail.nossr50.commands.player;
 
-import java.util.List;
-
+import com.gmail.nossr50.config.Config;
+import com.gmail.nossr50.datatypes.player.McMMOPlayer;
+import com.gmail.nossr50.datatypes.skills.SuperAbilityType;
+import com.gmail.nossr50.locale.LocaleLoader;
+import com.gmail.nossr50.util.commands.CommandUtils;
+import com.gmail.nossr50.util.player.UserManager;
+import com.gmail.nossr50.util.scoreboards.ScoreboardManager;
+import com.google.common.collect.ImmutableList;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 
-import com.gmail.nossr50.config.Config;
-import com.gmail.nossr50.datatypes.player.McMMOPlayer;
-import com.gmail.nossr50.datatypes.skills.AbilityType;
-import com.gmail.nossr50.locale.LocaleLoader;
-import com.gmail.nossr50.util.commands.CommandUtils;
-import com.gmail.nossr50.util.player.UserManager;
-import com.gmail.nossr50.util.scoreboards.ScoreboardManager;
-
-import com.google.common.collect.ImmutableList;
+import java.util.List;
 
 public class MccooldownCommand implements TabExecutor {
     @Override
@@ -32,7 +30,7 @@ public class MccooldownCommand implements TabExecutor {
             case 0:
                 Player player = (Player) sender;
 
-                if (Config.getInstance().getCooldownUseBoard()) {
+                if (Config.getInstance().getScoreboardsEnabled() && Config.getInstance().getCooldownUseBoard()) {
                     ScoreboardManager.enablePlayerCooldownScoreboard(player);
 
                     if (!Config.getInstance().getCooldownUseChat()) {
@@ -40,12 +38,18 @@ public class MccooldownCommand implements TabExecutor {
                     }
                 }
 
+                if(UserManager.getPlayer(player) == null)
+                {
+                    player.sendMessage(LocaleLoader.getString("Profile.PendingLoad"));
+                    return true;
+                }
+
                 McMMOPlayer mcMMOPlayer = UserManager.getPlayer(player);
 
                 player.sendMessage(LocaleLoader.getString("Commands.Cooldowns.Header"));
                 player.sendMessage(LocaleLoader.getString("mcMMO.NoSkillNote"));
 
-                for (AbilityType ability : AbilityType.values()) {
+                for (SuperAbilityType ability : SuperAbilityType.values()) {
                     if (!ability.getPermissions(player)) {
                         continue;
                     }

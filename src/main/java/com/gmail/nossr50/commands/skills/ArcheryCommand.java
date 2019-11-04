@@ -1,15 +1,17 @@
 package com.gmail.nossr50.commands.skills;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.bukkit.entity.Player;
-
-import com.gmail.nossr50.datatypes.skills.SecondaryAbility;
-import com.gmail.nossr50.datatypes.skills.SkillType;
+import com.gmail.nossr50.datatypes.skills.PrimarySkillType;
+import com.gmail.nossr50.datatypes.skills.SubSkillType;
 import com.gmail.nossr50.locale.LocaleLoader;
 import com.gmail.nossr50.skills.archery.Archery;
-import com.gmail.nossr50.util.Permissions;
+import com.gmail.nossr50.util.TextComponentFactory;
+import com.gmail.nossr50.util.skills.CombatUtils;
+import com.gmail.nossr50.util.skills.SkillActivationType;
+import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.entity.Player;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ArcheryCommand extends SkillCommand {
     private String skillShotBonus;
@@ -23,74 +25,70 @@ public class ArcheryCommand extends SkillCommand {
     private boolean canRetrieve;
 
     public ArcheryCommand() {
-        super(SkillType.ARCHERY);
+        super(PrimarySkillType.ARCHERY);
     }
 
     @Override
-    protected void dataCalculations(Player player, float skillValue, boolean isLucky) {
-        // SKILL SHOT
-        if (canSkillShot) {
-            double bonus = (skillValue / Archery.skillShotIncreaseLevel) * Archery.skillShotIncreasePercentage;
-            skillShotBonus = percent.format(Math.min(bonus, Archery.skillShotMaxBonusPercentage));
+    protected void dataCalculations(Player player, float skillValue) {
+        // ARCHERY_ARROW_RETRIEVAL
+        if (canRetrieve) {
+            String[] retrieveStrings = getAbilityDisplayValues(SkillActivationType.RANDOM_LINEAR_100_SCALE_WITH_CAP, player, SubSkillType.ARCHERY_ARROW_RETRIEVAL);
+            retrieveChance = retrieveStrings[0];
+            retrieveChanceLucky = retrieveStrings[1];
         }
-
-        // DAZE
+        
+        // ARCHERY_DAZE
         if (canDaze) {
-            String[] dazeStrings = calculateAbilityDisplayValues(skillValue, SecondaryAbility.DAZE, isLucky);
+            String[] dazeStrings = getAbilityDisplayValues(SkillActivationType.RANDOM_LINEAR_100_SCALE_WITH_CAP, player, SubSkillType.ARCHERY_DAZE);
             dazeChance = dazeStrings[0];
             dazeChanceLucky = dazeStrings[1];
         }
-
-        // RETRIEVE
-        if (canRetrieve) {
-            String[] retrieveStrings = calculateAbilityDisplayValues(skillValue, SecondaryAbility.RETRIEVE, isLucky);
-            retrieveChance = retrieveStrings[0];
-            retrieveChanceLucky = retrieveStrings[1];
+        
+        // SKILL SHOT
+        if (canSkillShot) {
+            skillShotBonus = percent.format(Archery.getDamageBonusPercent(player));
         }
     }
 
     @Override
     protected void permissionsCheck(Player player) {
-        canSkillShot = Permissions.secondaryAbilityEnabled(player, SecondaryAbility.SKILL_SHOT);
-        canDaze = Permissions.secondaryAbilityEnabled(player, SecondaryAbility.DAZE);
-        canRetrieve = Permissions.secondaryAbilityEnabled(player, SecondaryAbility.RETRIEVE);
-    }
-
-    @Override
-    protected List<String> effectsDisplay() {
-        List<String> messages = new ArrayList<String>();
-
-        if (canSkillShot) {
-            messages.add(LocaleLoader.getString("Effects.Template", LocaleLoader.getString("Archery.Effect.0"), LocaleLoader.getString("Archery.Effect.1")));
-        }
-
-        if (canDaze) {
-            messages.add(LocaleLoader.getString("Effects.Template", LocaleLoader.getString("Archery.Effect.2"), LocaleLoader.getString("Archery.Effect.3", Archery.dazeBonusDamage)));
-        }
-
-        if (canRetrieve) {
-            messages.add(LocaleLoader.getString("Effects.Template", LocaleLoader.getString("Archery.Effect.4"), LocaleLoader.getString("Archery.Effect.5")));
-        }
-
-        return messages;
+        canSkillShot = canUseSubskill(player, SubSkillType.ARCHERY_SKILL_SHOT);
+        canDaze = canUseSubskill(player, SubSkillType.ARCHERY_DAZE);
+        canRetrieve = canUseSubskill(player, SubSkillType.ARCHERY_ARROW_RETRIEVAL);
     }
 
     @Override
     protected List<String> statsDisplay(Player player, float skillValue, boolean hasEndurance, boolean isLucky) {
         List<String> messages = new ArrayList<String>();
 
-        if (canSkillShot) {
-            messages.add(LocaleLoader.getString("Archery.Combat.SkillshotBonus", skillShotBonus));
-        }
-
-        if (canDaze) {
-            messages.add(LocaleLoader.getString("Archery.Combat.DazeChance", dazeChance) + (isLucky ? LocaleLoader.getString("Perks.Lucky.Bonus", dazeChanceLucky) : ""));
-        }
-
         if (canRetrieve) {
-            messages.add(LocaleLoader.getString("Archery.Combat.RetrieveChance", retrieveChance) + (isLucky ? LocaleLoader.getString("Perks.Lucky.Bonus", retrieveChanceLucky) : ""));
+            messages.add(getStatMessage(SubSkillType.ARCHERY_ARROW_RETRIEVAL, retrieveChance)
+                    + (isLucky ? LocaleLoader.getString("Perks.Lucky.Bonus", retrieveChanceLucky) : ""));
+        }
+        
+        if (canDaze) {
+            messages.add(getStatMessage(SubSkillType.ARCHERY_DAZE, dazeChance)
+                    + (isLucky ? LocaleLoader.getString("Perks.Lucky.Bonus", dazeChanceLucky) : ""));
+        }
+        
+        if (canSkillShot) {
+            messages.add(getStatMessage(SubSkillType.ARCHERY_SKILL_SHOT, skillShotBonus));
+        }
+
+        if(canUseSubskill(player, SubSkillType.ARCHERY_ARCHERY_LIMIT_BREAK)) {
+            messages.add(getStatMessage(SubSkillType.ARCHERY_ARCHERY_LIMIT_BREAK,
+                String.valueOf(CombatUtils.getLimitBreakDamageAgainstQuality(player, SubSkillType.ARCHERY_ARCHERY_LIMIT_BREAK, 1000))));
         }
 
         return messages;
+    }
+
+    @Override
+    protected List<TextComponent> getTextComponents(Player player) {
+        List<TextComponent> textComponents = new ArrayList<>();
+
+        TextComponentFactory.getSubSkillTextComponents(player, textComponents, PrimarySkillType.ARCHERY);
+
+        return textComponents;
     }
 }

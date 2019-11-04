@@ -1,23 +1,23 @@
 package com.gmail.nossr50.datatypes.experience;
 
+import com.gmail.nossr50.config.experience.ExperienceConfig;
+import com.gmail.nossr50.datatypes.skills.PrimarySkillType;
+
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
-
-import com.gmail.nossr50.config.experience.ExperienceConfig;
-import com.gmail.nossr50.datatypes.skills.SkillType;
 
 public class SkillXpGain implements Delayed {
     private final long expiryTime;
     private final float xp;
-    private final SkillType type;
+    private final PrimarySkillType type;
 
-    public SkillXpGain(SkillType type, float xp) {
+    public SkillXpGain(PrimarySkillType type, float xp) {
         this.expiryTime = System.currentTimeMillis() + getDuration();
         this.xp = xp;
         this.type = type;
     }
 
-    public SkillType getSkill() {
+    public PrimarySkillType getSkill() {
         return type;
     }
 

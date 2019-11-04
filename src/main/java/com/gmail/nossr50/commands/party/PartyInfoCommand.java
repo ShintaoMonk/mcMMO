@@ -1,14 +1,5 @@
 package com.gmail.nossr50.commands.party;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.bukkit.ChatColor;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-
 import com.gmail.nossr50.config.Config;
 import com.gmail.nossr50.datatypes.party.Party;
 import com.gmail.nossr50.datatypes.party.PartyFeature;
@@ -17,6 +8,14 @@ import com.gmail.nossr50.datatypes.player.McMMOPlayer;
 import com.gmail.nossr50.locale.LocaleLoader;
 import com.gmail.nossr50.party.PartyManager;
 import com.gmail.nossr50.util.player.UserManager;
+import org.bukkit.ChatColor;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class PartyInfoCommand implements CommandExecutor {
     @Override
@@ -24,6 +23,11 @@ public class PartyInfoCommand implements CommandExecutor {
         switch (args.length) {
             case 0:
             case 1:
+                if(UserManager.getPlayer((Player) sender) == null)
+                {
+                    sender.sendMessage(LocaleLoader.getString("Profile.PendingLoad"));
+                    return true;
+                }
                 Player player = (Player) sender;
                 McMMOPlayer mcMMOPlayer = UserManager.getPlayer(player);
                 Party party = mcMMOPlayer.getParty();
@@ -116,11 +120,15 @@ public class PartyInfoCommand implements CommandExecutor {
     }
 
     private void displayMemberInfo(Player player, McMMOPlayer mcMMOPlayer, Party party) {
-        List<Player> nearMembers = PartyManager.getNearMembers(mcMMOPlayer);
-        int membersOnline = party.getOnlineMembers().size() - 1;
+        /*
+         * Only show members of the party that this member can see
+         */
+
+        List<Player> nearMembers = PartyManager.getNearVisibleMembers(mcMMOPlayer);
+        int membersOnline = party.getVisibleMembers(player).size();
 
         player.sendMessage(LocaleLoader.getString("Commands.Party.Members.Header"));
-        player.sendMessage(LocaleLoader.getString("Commands.Party.MembersNear", nearMembers.size(), membersOnline));
-        player.sendMessage(party.createMembersList(player.getName(), nearMembers));
+        player.sendMessage(LocaleLoader.getString("Commands.Party.MembersNear", nearMembers.size()+1, membersOnline));
+        player.sendMessage(party.createMembersList(player));
     }
 }

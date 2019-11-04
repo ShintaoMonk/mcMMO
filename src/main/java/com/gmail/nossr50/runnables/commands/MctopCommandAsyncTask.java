@@ -1,24 +1,22 @@
 package com.gmail.nossr50.runnables.commands;
 
-import java.util.List;
-
+import com.gmail.nossr50.datatypes.database.PlayerStat;
+import com.gmail.nossr50.datatypes.skills.PrimarySkillType;
+import com.gmail.nossr50.mcMMO;
+import org.apache.commons.lang.Validate;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import com.gmail.nossr50.mcMMO;
-import com.gmail.nossr50.datatypes.database.PlayerStat;
-import com.gmail.nossr50.datatypes.skills.SkillType;
-
-import org.apache.commons.lang.Validate;
+import java.util.List;
 
 public class MctopCommandAsyncTask extends BukkitRunnable {
     private final CommandSender sender;
-    private final SkillType skill;
+    private final PrimarySkillType skill;
     private final int page;
     private final boolean useBoard, useChat;
 
-    public MctopCommandAsyncTask(int page, SkillType skill, CommandSender sender, boolean useBoard, boolean useChat) {
+    public MctopCommandAsyncTask(int page, PrimarySkillType skill, CommandSender sender, boolean useBoard, boolean useChat) {
         Validate.isTrue(useBoard || useChat, "Attempted to start a rank retrieval with both board and chat off");
         Validate.notNull(sender, "Attempted to start a rank retrieval with no recipient");
 

@@ -1,15 +1,14 @@
 package com.gmail.nossr50.util;
 
-import java.text.DecimalFormat;
-
+import com.gmail.nossr50.config.Config;
+import com.gmail.nossr50.datatypes.skills.PrimarySkillType;
+import com.gmail.nossr50.locale.LocaleLoader;
+import com.gmail.nossr50.mcMMO;
+import com.gmail.nossr50.util.skills.PerksUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginDescriptionFile;
 
-import com.gmail.nossr50.mcMMO;
-import com.gmail.nossr50.config.Config;
-import com.gmail.nossr50.datatypes.skills.SkillType;
-import com.gmail.nossr50.locale.LocaleLoader;
-import com.gmail.nossr50.util.skills.PerksUtils;
+import java.text.DecimalFormat;
 
 public final class Motd {
     public static final String PERK_PREFIX = LocaleLoader.getString("MOTD.PerksPrefix") + " ";
@@ -35,7 +34,7 @@ public final class Motd {
      */
     public static void displayVersion(Player player, String version) {
         if (Permissions.showversion(player)) {
-            player.sendMessage(LocaleLoader.getString("MOTD.Version", version));
+            player.sendMessage(LocaleLoader.getString("MOTD.Version.Overhaul", version));
         }
     }
 
@@ -85,7 +84,8 @@ public final class Motd {
      * @param player Target player
      */
     public static void displayXpPerks(Player player) {
-        for (SkillType skill : SkillType.values()) {
+        for (PrimarySkillType skill : PrimarySkillType.values()) {
+            //TODO: Wow this is horrifying...
             if (PerksUtils.handleXpPerks(player, 1, skill) > 1) {
                 player.sendMessage(PERK_PREFIX + LocaleLoader.getString("Effects.Template", LocaleLoader.getString("Perks.XP.Name"), LocaleLoader.getString("Perks.XP.Desc")));
                 return;
@@ -126,7 +126,7 @@ public final class Motd {
      * @param player Target player
      */
     public static void displayLuckyPerks(Player player) {
-        for (SkillType skill : SkillType.values()) {
+        for (PrimarySkillType skill : PrimarySkillType.values()) {
             if (Permissions.lucky(player, skill)) {
                 player.sendMessage(PERK_PREFIX + LocaleLoader.getString("Effects.Template", LocaleLoader.getString("Perks.Lucky.Name"), LocaleLoader.getString("Perks.Lucky.Desc.Login")));
                 return;

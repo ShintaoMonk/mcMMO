@@ -1,14 +1,13 @@
 package com.gmail.nossr50.commands.party;
 
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-
 import com.gmail.nossr50.datatypes.player.McMMOPlayer;
 import com.gmail.nossr50.locale.LocaleLoader;
 import com.gmail.nossr50.party.PartyManager;
 import com.gmail.nossr50.util.player.UserManager;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 public class PartyCreateCommand implements CommandExecutor {
     @Override
@@ -18,6 +17,12 @@ public class PartyCreateCommand implements CommandExecutor {
             case 3:
                 Player player = (Player) sender;
                 McMMOPlayer mcMMOPlayer = UserManager.getPlayer(player);
+
+                if(UserManager.getPlayer(player) == null)
+                {
+                    player.sendMessage(LocaleLoader.getString("Profile.PendingLoad"));
+                    return true;
+                }
 
                 // Check to see if the party exists, and if it does cancel creating a new party
                 if (PartyManager.checkPartyExistence(player, args[1])) {

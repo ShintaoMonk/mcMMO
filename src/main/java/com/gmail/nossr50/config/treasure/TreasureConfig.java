@@ -1,33 +1,24 @@
 package com.gmail.nossr50.config.treasure;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
+import com.gmail.nossr50.config.ConfigLoader;
+import com.gmail.nossr50.datatypes.treasure.*;
+import com.gmail.nossr50.util.EnchantmentUtils;
+import com.gmail.nossr50.util.StringUtils;
 import org.bukkit.ChatColor;
-import org.bukkit.DyeColor;
 import org.bukkit.Material;
-import org.bukkit.TreeSpecies;
+import org.bukkit.Tag;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
-import org.bukkit.material.Dye;
-import org.bukkit.material.MaterialData;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionType;
 
-import com.gmail.nossr50.config.ConfigLoader;
-import com.gmail.nossr50.datatypes.treasure.EnchantmentTreasure;
-import com.gmail.nossr50.datatypes.treasure.ExcavationTreasure;
-import com.gmail.nossr50.datatypes.treasure.FishingTreasure;
-import com.gmail.nossr50.datatypes.treasure.HylianTreasure;
-import com.gmail.nossr50.datatypes.treasure.Rarity;
-import com.gmail.nossr50.datatypes.treasure.ShakeTreasure;
-import com.gmail.nossr50.util.EnchantmentUtils;
-import com.gmail.nossr50.util.StringUtils;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class TreasureConfig extends ConfigLoader {
 
@@ -59,7 +50,6 @@ public class TreasureConfig extends ConfigLoader {
     protected boolean validateKeys() {
         // Validate all the settings!
         List<String> reason = new ArrayList<String>();
-
         for (String tier : config.getConfigurationSection("Enchantment_Drop_Rates").getKeys(false)) {
             double totalEnchantDropRate = 0;
             double totalItemDropRate = 0;
@@ -68,7 +58,7 @@ public class TreasureConfig extends ConfigLoader {
                 double enchantDropRate = config.getDouble("Enchantment_Drop_Rates." + tier + "." + rarity.toString());
                 double itemDropRate = config.getDouble("Item_Drop_Rates." + tier + "." + rarity.toString());
 
-                if ((enchantDropRate < 0.0 || enchantDropRate > 100.0) && rarity != Rarity.TRAP && rarity != Rarity.RECORD) {
+                if ((enchantDropRate < 0.0 || enchantDropRate > 100.0) && rarity != Rarity.RECORD) {
                     reason.add("The enchant drop rate for " + tier + " items that are " + rarity.toString() + "should be between 0.0 and 100.0!");
                 }
 
@@ -142,15 +132,11 @@ public class TreasureConfig extends ConfigLoader {
              */
             Material material;
 
-            if (materialName.contains("INK_SACK")) {
-                material = Material.INK_SACK;
-            } else if (materialName.contains("COAL")) {
-                material = Material.COAL;
-            } else if (materialName.contains("INVENTORY")) {
-                // Use magic material BED_BLOCK to know that we're grabbing something from the inventory and not a normal treasure
+            if (materialName.contains("INVENTORY")) {
+                // Use magic material BEDROCK to know that we're grabbing something from the inventory and not a normal treasure
                 if (!shakeMap.containsKey(EntityType.PLAYER))
                     shakeMap.put(EntityType.PLAYER, new ArrayList<ShakeTreasure>());
-                shakeMap.get(EntityType.PLAYER).add(new ShakeTreasure(new ItemStack(Material.BED_BLOCK, 1, (byte) 0), 1, getInventoryStealDropChance(), getInventoryStealDropLevel()));
+                shakeMap.get(EntityType.PLAYER).add(new ShakeTreasure(new ItemStack(Material.BEDROCK, 1, (byte) 0), 1, getInventoryStealDropChance(), getInventoryStealDropLevel()));
                 continue;
             } else {
                 material = Material.matchMaterial(materialName);
@@ -164,7 +150,7 @@ public class TreasureConfig extends ConfigLoader {
             }
 
             if (amount <= 0) {
-                reason.add("Amount of " + treasureName + " must be greater than 0! " + amount);
+                amount = 1;
             }
 
             if (material != null && material.isBlock() && (data > 127 || data < -128)) {
@@ -240,33 +226,6 @@ public class TreasureConfig extends ConfigLoader {
                     }
                     item.setItemMeta(itemMeta);
                 }
-            } else if (materialName.contains("INK_SACK")) {
-                String color = materialName.substring(9);
-
-                try {
-                    Dye dye = new Dye();
-                    dye.setColor(DyeColor.valueOf(color.toUpperCase().trim()));
-
-                    item = dye.toItemStack(amount);
-
-                    if (config.contains(type + "." + treasureName + ".Custom_Name")) {
-                        ItemMeta itemMeta = item.getItemMeta();
-                        itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', config.getString(type + "." + treasureName + ".Custom_Name")));
-                        item.setItemMeta(itemMeta);
-                    }
-
-                    if (config.contains(type + "." + treasureName + ".Lore")) {
-                        ItemMeta itemMeta = item.getItemMeta();
-                        List<String> lore = new ArrayList<String>();
-                        for (String s : config.getStringList(type + "." + treasureName + ".Lore")) {
-                            lore.add(ChatColor.translateAlternateColorCodes('&', s));
-                        }
-                        itemMeta.setLore(lore);
-                        item.setItemMeta(itemMeta);
-                    }
-                } catch (IllegalArgumentException ex) {
-                    reason.add("Invalid Dye_Color: " + color);
-                }
             } else if (material != null) {
                 item = new ItemStack(material, amount, data);
 
@@ -312,26 +271,29 @@ public class TreasureConfig extends ConfigLoader {
 
                     for (String dropper : dropList) {
                         if (dropper.equals("Bushes")) {
-                            AddHylianTreasure("Small_Fern", hylianTreasure);
-                            AddHylianTreasure("Small_Grass", hylianTreasure);
-                            for (TreeSpecies species : TreeSpecies.values()) {
-                                AddHylianTreasure(StringUtils.getPrettyTreeSpeciesString(species) + "_Sapling", hylianTreasure);
-                            }
+                            AddHylianTreasure(StringUtils.getFriendlyConfigMaterialString(Material.FERN), hylianTreasure);
+                            AddHylianTreasure(StringUtils.getFriendlyConfigMaterialString(Material.TALL_GRASS), hylianTreasure);
+                            for (Material species : Tag.SAPLINGS.getValues())
+                                AddHylianTreasure(StringUtils.getFriendlyConfigMaterialString(species), hylianTreasure);
 
-                            AddHylianTreasure(StringUtils.getPrettyItemString(Material.DEAD_BUSH), hylianTreasure);
+                            AddHylianTreasure(StringUtils.getFriendlyConfigMaterialString(Material.DEAD_BUSH), hylianTreasure);
                             continue;
                         }
                         if (dropper.equals("Flowers")) {
-                            for (int i = 0; i < 9; i++) {
-                                AddHylianTreasure(StringUtils.getFriendlyConfigMaterialDataString(new MaterialData(Material.RED_ROSE, (byte) i)), hylianTreasure);
-                            }
-                            AddHylianTreasure(StringUtils.getPrettyItemString(Material.YELLOW_FLOWER), hylianTreasure);
+                            AddHylianTreasure(StringUtils.getFriendlyConfigMaterialString(Material.POPPY), hylianTreasure);
+                            AddHylianTreasure(StringUtils.getFriendlyConfigMaterialString(Material.DANDELION), hylianTreasure);
+                            AddHylianTreasure(StringUtils.getFriendlyConfigMaterialString(Material.BLUE_ORCHID), hylianTreasure);
+                            AddHylianTreasure(StringUtils.getFriendlyConfigMaterialString(Material.ALLIUM), hylianTreasure);
+                            AddHylianTreasure(StringUtils.getFriendlyConfigMaterialString(Material.AZURE_BLUET), hylianTreasure);
+                            AddHylianTreasure(StringUtils.getFriendlyConfigMaterialString(Material.ORANGE_TULIP), hylianTreasure);
+                            AddHylianTreasure(StringUtils.getFriendlyConfigMaterialString(Material.PINK_TULIP), hylianTreasure);
+                            AddHylianTreasure(StringUtils.getFriendlyConfigMaterialString(Material.RED_TULIP), hylianTreasure);
+                            AddHylianTreasure(StringUtils.getFriendlyConfigMaterialString(Material.WHITE_TULIP), hylianTreasure);
                             continue;
                         }
                         if (dropper.equals("Pots")) {
-                            for (int i = 0; i < 14; i++) {
-                                AddHylianTreasure(StringUtils.getFriendlyConfigMaterialDataString(new MaterialData(Material.FLOWER_POT, (byte) i)), hylianTreasure);
-                            }
+                            for (Material species : Tag.FLOWER_POTS.getValues())
+                                AddHylianTreasure(StringUtils.getFriendlyConfigMaterialString(species), hylianTreasure);
                             continue;
                         }
                         AddHylianTreasure(dropper, hylianTreasure);
@@ -349,7 +311,7 @@ public class TreasureConfig extends ConfigLoader {
 
     private void loadEnchantments() {
         for (Rarity rarity : Rarity.values()) {
-            if (rarity == Rarity.TRAP || rarity == Rarity.RECORD) {
+            if (rarity == Rarity.RECORD) {
                 continue;
             }
 

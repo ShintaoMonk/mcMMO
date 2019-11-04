@@ -1,9 +1,16 @@
 package com.gmail.nossr50.commands.experience;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
+import com.gmail.nossr50.datatypes.experience.XPGainReason;
+import com.gmail.nossr50.datatypes.player.McMMOPlayer;
+import com.gmail.nossr50.datatypes.player.PlayerProfile;
+import com.gmail.nossr50.datatypes.skills.PrimarySkillType;
+import com.gmail.nossr50.locale.LocaleLoader;
+import com.gmail.nossr50.mcMMO;
+import com.gmail.nossr50.util.EventUtils;
+import com.gmail.nossr50.util.Permissions;
+import com.gmail.nossr50.util.commands.CommandUtils;
+import com.gmail.nossr50.util.player.UserManager;
+import com.google.common.collect.ImmutableList;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -11,17 +18,9 @@ import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
 
-import com.gmail.nossr50.mcMMO;
-import com.gmail.nossr50.datatypes.player.McMMOPlayer;
-import com.gmail.nossr50.datatypes.player.PlayerProfile;
-import com.gmail.nossr50.datatypes.skills.SkillType;
-import com.gmail.nossr50.datatypes.skills.XPGainReason;
-import com.gmail.nossr50.locale.LocaleLoader;
-import com.gmail.nossr50.util.EventUtils;
-import com.gmail.nossr50.util.Permissions;
-import com.gmail.nossr50.util.commands.CommandUtils;
-import com.gmail.nossr50.util.player.UserManager;
-import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * This class mirrors the structure of ExperienceCommand, except the
@@ -30,7 +29,7 @@ import com.google.common.collect.ImmutableList;
 public class SkillresetCommand implements TabExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        SkillType skill;
+        PrimarySkillType skill;
         switch (args.length) {
             case 1:
                 if (CommandUtils.noConsoleUsage(sender)) {
@@ -50,7 +49,7 @@ public class SkillresetCommand implements TabExecutor {
                     skill = null;
                 }
                 else {
-                    skill = SkillType.getSkill(args[1]);
+                    skill = PrimarySkillType.getSkill(args[1]);
                 }
 
                 editValues((Player) sender, UserManager.getPlayer(sender.getName()).getProfile(), skill);
@@ -70,7 +69,7 @@ public class SkillresetCommand implements TabExecutor {
                     skill = null;
                 }
                 else {
-                    skill = SkillType.getSkill(args[1]);
+                    skill = PrimarySkillType.getSkill(args[1]);
                 }
 
                 String playerName = CommandUtils.getMatchedPlayerName(args[0]);
@@ -110,13 +109,13 @@ public class SkillresetCommand implements TabExecutor {
                 List<String> playerNames = CommandUtils.getOnlinePlayerNames(sender);
                 return StringUtil.copyPartialMatches(args[0], playerNames, new ArrayList<String>(playerNames.size()));
             case 2:
-                return StringUtil.copyPartialMatches(args[1], SkillType.SKILL_NAMES, new ArrayList<String>(SkillType.SKILL_NAMES.size()));
+                return StringUtil.copyPartialMatches(args[1], PrimarySkillType.SKILL_NAMES, new ArrayList<String>(PrimarySkillType.SKILL_NAMES.size()));
             default:
                 return ImmutableList.of();
         }
     }
 
-    protected void handleCommand(Player player, PlayerProfile profile, SkillType skill) {
+    protected void handleCommand(Player player, PlayerProfile profile, PrimarySkillType skill) {
         int levelsRemoved = profile.getSkillLevel(skill);
         float xpRemoved = profile.getSkillXpLevelRaw(skill);
 
@@ -127,7 +126,7 @@ public class SkillresetCommand implements TabExecutor {
             return;
         }
 
-        EventUtils.handleLevelChangeEvent(player, skill, levelsRemoved, xpRemoved, false, XPGainReason.COMMAND);
+        EventUtils.tryLevelChangeEvent(player, skill, levelsRemoved, xpRemoved, false, XPGainReason.COMMAND);
     }
 
     protected boolean permissionsCheckSelf(CommandSender sender) {
@@ -142,7 +141,7 @@ public class SkillresetCommand implements TabExecutor {
         player.sendMessage(LocaleLoader.getString("Commands.Reset.All"));
     }
 
-    protected void handlePlayerMessageSkill(Player player, SkillType skill) {
+    protected void handlePlayerMessageSkill(Player player, PrimarySkillType skill) {
         player.sendMessage(LocaleLoader.getString("Commands.Reset.Single", skill.getName()));
     }
 
@@ -150,7 +149,7 @@ public class SkillresetCommand implements TabExecutor {
         return skillName.equalsIgnoreCase("all") || !CommandUtils.isInvalidSkill(sender, skillName);
     }
 
-    protected static void handleSenderMessage(CommandSender sender, String playerName, SkillType skill) {
+    protected static void handleSenderMessage(CommandSender sender, String playerName, PrimarySkillType skill) {
         if (skill == null) {
             sender.sendMessage(LocaleLoader.getString("Commands.addlevels.AwardAll.2", playerName));
         }
@@ -159,10 +158,10 @@ public class SkillresetCommand implements TabExecutor {
         }
     }
 
-    protected void editValues(Player player, PlayerProfile profile, SkillType skill) {
+    protected void editValues(Player player, PlayerProfile profile, PrimarySkillType skill) {
         if (skill == null) {
-            for (SkillType skillType : SkillType.NON_CHILD_SKILLS) {
-                handleCommand(player, profile, skillType);
+            for (PrimarySkillType primarySkillType : PrimarySkillType.NON_CHILD_SKILLS) {
+                handleCommand(player, profile, primarySkillType);
             }
 
             if (player != null) {

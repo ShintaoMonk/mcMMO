@@ -1,10 +1,11 @@
 package com.gmail.nossr50.util.skills;
 
-import org.bukkit.entity.Player;
-
 import com.gmail.nossr50.config.experience.ExperienceConfig;
-import com.gmail.nossr50.datatypes.skills.SkillType;
+import com.gmail.nossr50.datatypes.skills.PrimarySkillType;
 import com.gmail.nossr50.util.Permissions;
+import com.gmail.nossr50.util.player.UserManager;
+import net.md_5.bungee.api.ChatColor;
+import org.bukkit.entity.Player;
 
 public final class PerksUtils {
     private static final int LUCKY_SKILL_ACTIVATION_CHANCE = 75;
@@ -44,40 +45,55 @@ public final class PerksUtils {
         return ticks;
     }
 
-    public static float handleXpPerks(Player player, float xp, SkillType skill) {
+    public static float handleXpPerks(Player player, float xp, PrimarySkillType skill) {
+        double modifier = 1.0F;
+        double originalXP = xp;
+
         if (Permissions.customXpBoost(player, skill)) {
-            xp *= ExperienceConfig.getInstance().getCustomXpPerkBoost();
+            if(UserManager.getPlayer(player) != null && UserManager.getPlayer(player).isDebugMode()) {
+                player.sendMessage(ChatColor.GOLD + "[DEBUG] " + ChatColor.DARK_GRAY + "XP Perk Multiplier IS CUSTOM! ");
+            }
+
+             modifier = ExperienceConfig.getInstance().getCustomXpPerkBoost();
         }
         else if (Permissions.quadrupleXp(player, skill)) {
-            xp *= 4;
+            modifier = 4;
         }
         else if (Permissions.tripleXp(player, skill)) {
-            xp *= 3;
+            modifier = 3;
         }
         else if (Permissions.doubleAndOneHalfXp(player, skill)) {
-            xp *= 2.5;
+            modifier = 2.5;
         }
         else if (Permissions.doubleXp(player, skill)) {
-            xp *= 2;
+            modifier = 2;
         }
         else if (Permissions.oneAndOneHalfXp(player, skill)) {
-            xp *= 1.5;
+            modifier = 1.5;
         }
         else if (Permissions.oneAndOneTenthXp(player, skill)) {
-            xp *= 1.1;
+            modifier = 1.1;
         }
 
-        return xp;
+        float modifiedXP = (float) (xp * modifier);
+
+        if(UserManager.getPlayer(player) != null && UserManager.getPlayer(player).isDebugMode()) {
+            player.sendMessage(ChatColor.GOLD + "[DEBUG] " + ChatColor.RESET + "XP Perk Multiplier - " + ChatColor.GOLD + modifier);
+            player.sendMessage(ChatColor.GOLD + "[DEBUG] " + ChatColor.RESET + "Original XP before perk boosts " + ChatColor.RED + originalXP);
+            player.sendMessage(ChatColor.GOLD + "[DEBUG] " + ChatColor.RESET + "XP AFTER PERKS " + ChatColor.DARK_RED + modifiedXP);
+        }
+
+        return modifiedXP;
     }
 
     /**
      * Calculate activation chance for a skill.
      *
      * @param player Player to check the activation chance for
-     * @param skill SkillType to check the activation chance of
+     * @param skill PrimarySkillType to check the activation chance of
      * @return the activation chance with "lucky perk" accounted for
      */
-    public static int handleLuckyPerks(Player player, SkillType skill) {
+    public static int handleLuckyPerks(Player player, PrimarySkillType skill) {
         if (Permissions.lucky(player, skill)) {
             return LUCKY_SKILL_ACTIVATION_CHANCE;
         }

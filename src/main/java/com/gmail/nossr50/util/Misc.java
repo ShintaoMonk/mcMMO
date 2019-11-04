@@ -1,25 +1,20 @@
 package com.gmail.nossr50.util;
 
-import java.util.Collection;
-import java.util.Random;
-import java.util.Set;
-
+import com.gmail.nossr50.events.items.McMMOItemSpawnEvent;
+import com.gmail.nossr50.mcMMO;
+import com.gmail.nossr50.runnables.player.PlayerProfileLoadingTask;
+import com.gmail.nossr50.util.player.UserManager;
+import com.google.common.collect.ImmutableSet;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.BlockState;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Item;
-import org.bukkit.entity.NPC;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Vector;
 
-import com.gmail.nossr50.mcMMO;
-import com.gmail.nossr50.config.Config;
-import com.gmail.nossr50.events.items.McMMOItemSpawnEvent;
-import com.gmail.nossr50.runnables.player.PlayerProfileLoadingTask;
-import com.gmail.nossr50.util.player.UserManager;
-
-import com.google.common.collect.ImmutableSet;
+import java.util.Collection;
+import java.util.Random;
+import java.util.Set;
 
 public final class Misc {
     private static Random random = new Random();
@@ -31,7 +26,7 @@ public final class Misc {
     public static final double SKILL_MESSAGE_MAX_SENDING_DISTANCE = 10.0;
 
     // Sound Pitches & Volumes from CB
-    public static final float ANVIL_USE_PITCH  = 0.3F;  // Not in CB directly, I went off the place sound values
+/*    public static final float ANVIL_USE_PITCH  = 0.3F;  // Not in CB directly, I went off the place sound values
     public static final float ANVIL_USE_VOLUME = 1.0F * Config.getInstance().getMasterVolume();  // Not in CB directly, I went off the place sound values
     public static final float FIZZ_VOLUME      = 0.5F * Config.getInstance().getMasterVolume();
     public static final float POP_VOLUME       = 0.2F * Config.getInstance().getMasterVolume();
@@ -39,26 +34,49 @@ public final class Misc {
     public static final float BAT_PITCH        = 0.6F;
     public static final float GHAST_VOLUME     = 1.0F * Config.getInstance().getMasterVolume();
     public static final float LEVELUP_PITCH    = 0.5F;  // Reduced to differentiate between vanilla level-up
-    public static final float LEVELUP_VOLUME   = 0.75F * Config.getInstance().getMasterVolume(); // Use max volume always
+    public static final float LEVELUP_VOLUME   = 0.75F * Config.getInstance().getMasterVolume(); // Use max volume always*/
 
     public static final Set<String> modNames = ImmutableSet.of("LOTR", "BUILDCRAFT", "ENDERIO", "ENHANCEDBIOMES", "IC2", "METALLURGY", "FORESTRY", "GALACTICRAFT", "RAILCRAFT", "TWILIGHTFOREST", "THAUMCRAFT", "GRAVESTONEMOD", "GROWTHCRAFT", "ARCTICMOBS", "DEMONMOBS", "INFERNOMOBS", "SWAMPMOBS", "MARICULTURE", "MINESTRAPPOLATION");
 
     private Misc() {};
 
-    public static float getFizzPitch() {
-        return 2.6F + (getRandom().nextFloat() - getRandom().nextFloat()) * 0.8F;
+    /**
+     * Determines if an entity is an NPC but not a villager
+     * This method aims to establish compatibility between mcMMO and other plugins which create "NPCs"
+     *
+     * It does this by checking the following
+     * 1) The entity is not a Villager
+     * 2) The entity can be considered an NPC
+     *
+     * In this context, an NPC is a bit hard to define. Various plugins determine what an NPC is in different ways.
+     * @see Misc::isNPCIncludingVillagers
+     * @param entity target entity
+     * @return true if the entity is not a Villager and is not a "NPC"
+     */
+    public static boolean isNPCEntityExcludingVillagers(Entity entity) {
+        return (!isVillager(entity)
+                && isNPCIncludingVillagers(entity)); //Compatibility with some mod..
     }
 
-    public static float getPopPitch() {
-        return ((getRandom().nextFloat() - getRandom().nextFloat()) * 0.7F + 1.0F) * 2.0F;
+    public static boolean isNPCClassType(Entity entity) {
+        return entity instanceof NPC;
     }
 
-    public static float getGhastPitch() {
-        return (getRandom().nextFloat() - getRandom().nextFloat()) * 0.2F + 1.0F;
+    public static boolean hasNPCMetadataTag(Entity entity) {
+        return entity.hasMetadata("NPC");
     }
 
-    public static boolean isNPCEntity(Entity entity) {
-        return (entity == null || entity.hasMetadata("NPC") || entity instanceof NPC || entity.getClass().getName().equalsIgnoreCase("cofh.entity.PlayerFake"));
+    public static boolean isVillager(Entity entity) {
+        String entityType = entity.getType().toString();
+        //This weird code is for 1.13 & 1.14 compatibility
+        return entityType.equalsIgnoreCase("wandering_trader") || entity instanceof Villager;
+    }
+
+    public static boolean isNPCIncludingVillagers(Entity entity) {
+        return (entity == null
+                || (hasNPCMetadataTag(entity))
+                || (isNPCClassType(entity))
+                || entity.getClass().getName().equalsIgnoreCase("cofh.entity.PlayerFake"));
     }
 
     /**
@@ -122,7 +140,64 @@ public final class Misc {
             return null;
         }
 
-        return location.getWorld().dropItemNaturally(location, itemStack);
+        return location.getWorld().dropItem(location, itemStack);
+    }
+
+    /**
+     * Drop items at a given location.
+     *
+     * @param fromLocation The location to drop the items at
+     * @param is The items to drop
+     * @param speed the speed that the item should travel
+     * @param quantity The amount of items to drop
+     */
+    public static void spawnItemsTowardsLocation(Location fromLocation, Location toLocation, ItemStack is, int quantity, double speed) {
+        for (int i = 0; i < quantity; i++) {
+            spawnItemTowardsLocation(fromLocation, toLocation, is, speed);
+        }
+    }
+
+    /**
+     * Drop an item at a given location.
+     * This method is fairly expensive as it creates clones of everything passed to itself since they are mutable objects
+     *
+     * @param fromLocation The location to drop the item at
+     * @param toLocation The location the item will travel towards
+     * @param itemToSpawn The item to spawn
+     * @param speed the speed that the item should travel
+     * @return Dropped Item entity or null if invalid or cancelled
+     */
+    public static Item spawnItemTowardsLocation(Location fromLocation, Location toLocation, ItemStack itemToSpawn, double speed) {
+        if (itemToSpawn.getType() == Material.AIR) {
+            return null;
+        }
+
+        //Work with fresh copies of everything
+        ItemStack clonedItem = itemToSpawn.clone();
+        Location spawnLocation = fromLocation.clone();
+        Location targetLocation = toLocation.clone();
+
+        // We can't get the item until we spawn it and we want to make it cancellable, so we have a custom event.
+        McMMOItemSpawnEvent event = new McMMOItemSpawnEvent(spawnLocation, clonedItem);
+        mcMMO.p.getServer().getPluginManager().callEvent(event);
+
+        //Something cancelled the event so back out
+        if (event.isCancelled() || event.getItemStack() == null) {
+            return null;
+        }
+
+        //Use the item from the event
+        Item spawnedItem = spawnLocation.getWorld().dropItem(spawnLocation, clonedItem);
+        Vector vecFrom = spawnLocation.clone().toVector().clone();
+        Vector vecTo = targetLocation.clone().toVector().clone();
+
+        //Vector which is pointing towards out target location
+        Vector direction = vecTo.subtract(vecFrom).normalize();
+
+        //Modify the speed of the vector
+        direction = direction.multiply(speed);
+        spawnedItem.setVelocity(direction);
+        return spawnedItem;
     }
 
     public static void profileCleanup(String playerName) {

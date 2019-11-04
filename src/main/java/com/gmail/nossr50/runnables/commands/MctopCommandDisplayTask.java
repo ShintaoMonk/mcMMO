@@ -1,7 +1,8 @@
 package com.gmail.nossr50.runnables.commands;
 
+import com.gmail.nossr50.config.Config;
 import com.gmail.nossr50.datatypes.database.PlayerStat;
-import com.gmail.nossr50.datatypes.skills.SkillType;
+import com.gmail.nossr50.datatypes.skills.PrimarySkillType;
 import com.gmail.nossr50.locale.LocaleLoader;
 import com.gmail.nossr50.mcMMO;
 import com.gmail.nossr50.util.scoreboards.ScoreboardManager;
@@ -18,11 +19,11 @@ import java.util.List;
 public class MctopCommandDisplayTask extends BukkitRunnable {
     private final List<PlayerStat> userStats;
     private final CommandSender sender;
-    private final SkillType skill;
+    private final PrimarySkillType skill;
     private final int page;
     private final boolean useBoard, useChat;
 
-    MctopCommandDisplayTask(List<PlayerStat> userStats, int page, SkillType skill, CommandSender sender, boolean useBoard, boolean useChat) {
+    MctopCommandDisplayTask(List<PlayerStat> userStats, int page, PrimarySkillType skill, CommandSender sender, boolean useBoard, boolean useChat) {
         this.userStats = userStats;
         this.page = page;
         this.skill = skill;
@@ -33,7 +34,7 @@ public class MctopCommandDisplayTask extends BukkitRunnable {
 
     @Override
     public void run() {
-        if (useBoard) {
+        if (useBoard && Config.getInstance().getScoreboardsEnabled()) {
             displayBoard();
         }
 

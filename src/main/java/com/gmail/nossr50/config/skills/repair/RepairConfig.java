@@ -1,20 +1,18 @@
 package com.gmail.nossr50.config.skills.repair;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import org.bukkit.Material;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.inventory.ItemStack;
-
 import com.gmail.nossr50.config.ConfigLoader;
 import com.gmail.nossr50.datatypes.skills.ItemType;
 import com.gmail.nossr50.datatypes.skills.MaterialType;
 import com.gmail.nossr50.skills.repair.repairables.Repairable;
 import com.gmail.nossr50.skills.repair.repairables.RepairableFactory;
 import com.gmail.nossr50.util.ItemUtils;
-import com.gmail.nossr50.util.skills.SkillUtils;
+import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.inventory.ItemStack;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 public class RepairConfig extends ConfigLoader {
     private List<Repairable> repairables;
@@ -127,7 +125,6 @@ public class RepairConfig extends ConfigLoader {
                 }
             }
 
-            byte repairMetadata = (byte) config.getInt("Repairables." + key + ".RepairMaterialMetadata", -1);
             int minimumLevel = config.getInt("Repairables." + key + ".MinimumLevel");
             double xpMultiplier = config.getDouble("Repairables." + key + ".XpMultiplier", 1);
 
@@ -136,18 +133,14 @@ public class RepairConfig extends ConfigLoader {
             }
 
             // Minimum Quantity
-            int minimumQuantity = (itemMaterial != null ? SkillUtils.getRepairAndSalvageQuantities(new ItemStack(itemMaterial), repairMaterial, repairMetadata) : config.getInt("Repairables." + key + ".MinimumQuantity", 2));
+            int minimumQuantity = config.getInt("Repairables." + key + ".MinimumQuantity");
 
-            if (minimumQuantity <= 0 && itemMaterial != null) {
-                minimumQuantity = config.getInt("Repairables." + key + ".MinimumQuantity", 2);
-            }
-
-            if (minimumQuantity <= 0) {
-                reason.add("Minimum quantity of " + key + " must be greater than 0!");
+            if(minimumQuantity == 0) {
+                minimumQuantity = -1;
             }
 
             if (noErrorsInRepairable(reason)) {
-                Repairable repairable = RepairableFactory.getRepairable(itemMaterial, repairMaterial, repairMetadata, minimumLevel, minimumQuantity, maximumDurability, repairItemType, repairMaterialType, xpMultiplier);
+                Repairable repairable = RepairableFactory.getRepairable(itemMaterial, repairMaterial, null, minimumLevel, maximumDurability, repairItemType, repairMaterialType, xpMultiplier, minimumQuantity);
                 repairables.add(repairable);
             }
         }

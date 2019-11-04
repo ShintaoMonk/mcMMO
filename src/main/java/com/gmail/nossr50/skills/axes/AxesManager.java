@@ -1,49 +1,63 @@
 package com.gmail.nossr50.skills.axes;
 
-import java.util.Map;
-
+import com.gmail.nossr50.config.AdvancedConfig;
+import com.gmail.nossr50.datatypes.interactions.NotificationType;
+import com.gmail.nossr50.datatypes.player.McMMOPlayer;
+import com.gmail.nossr50.datatypes.skills.PrimarySkillType;
+import com.gmail.nossr50.datatypes.skills.SubSkillType;
+import com.gmail.nossr50.datatypes.skills.SuperAbilityType;
+import com.gmail.nossr50.datatypes.skills.ToolType;
+import com.gmail.nossr50.skills.SkillManager;
+import com.gmail.nossr50.util.ItemUtils;
+import com.gmail.nossr50.util.Permissions;
+import com.gmail.nossr50.util.player.NotificationManager;
+import com.gmail.nossr50.util.random.RandomChanceUtil;
+import com.gmail.nossr50.util.skills.*;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent.DamageModifier;
 import org.bukkit.inventory.ItemStack;
 
-import com.gmail.nossr50.datatypes.player.McMMOPlayer;
-import com.gmail.nossr50.datatypes.skills.AbilityType;
-import com.gmail.nossr50.datatypes.skills.SecondaryAbility;
-import com.gmail.nossr50.datatypes.skills.SkillType;
-import com.gmail.nossr50.datatypes.skills.ToolType;
-import com.gmail.nossr50.locale.LocaleLoader;
-import com.gmail.nossr50.skills.SkillManager;
-import com.gmail.nossr50.util.ItemUtils;
-import com.gmail.nossr50.util.Permissions;
-import com.gmail.nossr50.util.player.UserManager;
-import com.gmail.nossr50.util.skills.CombatUtils;
-import com.gmail.nossr50.util.skills.ParticleEffectUtils;
-import com.gmail.nossr50.util.skills.SkillUtils;
+import java.util.Map;
 
 public class AxesManager extends SkillManager {
     public AxesManager(McMMOPlayer mcMMOPlayer) {
-        super(mcMMOPlayer, SkillType.AXES);
+        super(mcMMOPlayer, PrimarySkillType.AXES);
     }
 
     public boolean canUseAxeMastery() {
-        return Permissions.secondaryAbilityEnabled(getPlayer(), SecondaryAbility.AXE_MASTERY);
+        if(!RankUtils.hasUnlockedSubskill(getPlayer(), SubSkillType.AXES_AXE_MASTERY))
+            return false;
+
+        return Permissions.isSubSkillEnabled(getPlayer(), SubSkillType.AXES_AXE_MASTERY);
     }
 
     public boolean canCriticalHit(LivingEntity target) {
-        return target.isValid() && Permissions.secondaryAbilityEnabled(getPlayer(), SecondaryAbility.CRITICAL_HIT);
+        if(!RankUtils.hasUnlockedSubskill(getPlayer(), SubSkillType.AXES_CRITICAL_STRIKES))
+            return false;
+
+        return target.isValid() && Permissions.isSubSkillEnabled(getPlayer(), SubSkillType.AXES_CRITICAL_STRIKES);
     }
 
     public boolean canImpact(LivingEntity target) {
-        return target.isValid() && Permissions.secondaryAbilityEnabled(getPlayer(), SecondaryAbility.ARMOR_IMPACT) && Axes.hasArmor(target);
+        if(!RankUtils.hasUnlockedSubskill(getPlayer(), SubSkillType.AXES_ARMOR_IMPACT))
+            return false;
+
+        return target.isValid() && Permissions.isSubSkillEnabled(getPlayer(), SubSkillType.AXES_ARMOR_IMPACT) && Axes.hasArmor(target);
     }
 
     public boolean canGreaterImpact(LivingEntity target) {
-        return target.isValid() && Permissions.secondaryAbilityEnabled(getPlayer(), SecondaryAbility.GREATER_IMPACT) && !Axes.hasArmor(target);
+        if(!RankUtils.hasUnlockedSubskill(getPlayer(), SubSkillType.AXES_GREATER_IMPACT))
+            return false;
+
+        return target.isValid() && Permissions.isSubSkillEnabled(getPlayer(), SubSkillType.AXES_GREATER_IMPACT) && !Axes.hasArmor(target);
     }
 
     public boolean canUseSkullSplitter(LivingEntity target) {
-        return target.isValid() && mcMMOPlayer.getAbilityMode(AbilityType.SKULL_SPLITTER) && Permissions.skullSplitter(getPlayer());
+        if(!RankUtils.hasUnlockedSubskill(getPlayer(), SubSkillType.AXES_SKULL_SPLITTER))
+            return false;
+
+        return target.isValid() && mcMMOPlayer.getAbilityMode(SuperAbilityType.SKULL_SPLITTER) && Permissions.skullSplitter(getPlayer());
     }
 
     public boolean canActivateAbility() {
@@ -54,11 +68,11 @@ public class AxesManager extends SkillManager {
      * Handle the effects of the Axe Mastery ability
      */
     public double axeMastery() {
-        if (!SkillUtils.activationSuccessful(SecondaryAbility.AXE_MASTERY, getPlayer())) {
+        if (!RandomChanceUtil.isActivationSuccessful(SkillActivationType.ALWAYS_FIRES, SubSkillType.AXES_AXE_MASTERY, getPlayer())) {
             return 0;
         }
 
-        return Math.min(getSkillLevel() / (Axes.axeMasteryMaxBonusLevel / Axes.axeMasteryMaxBonus), Axes.axeMasteryMaxBonus);
+        return Axes.getAxeMasteryBonusDamage(getPlayer());
     }
 
     /**
@@ -68,21 +82,21 @@ public class AxesManager extends SkillManager {
      * @param damage The amount of damage initially dealt by the event
      */
     public double criticalHit(LivingEntity target, double damage) {
-        if (!SkillUtils.activationSuccessful(SecondaryAbility.CRITICAL_HIT, getPlayer(), getSkillLevel(), activationChance)) {
+        if (!RandomChanceUtil.isActivationSuccessful(SkillActivationType.RANDOM_LINEAR_100_SCALE_WITH_CAP, SubSkillType.AXES_CRITICAL_STRIKES, getPlayer())) {
             return 0;
         }
 
         Player player = getPlayer();
 
         if (mcMMOPlayer.useChatNotifications()) {
-            player.sendMessage(LocaleLoader.getString("Axes.Combat.CriticalHit"));
+            NotificationManager.sendPlayerInformation(player, NotificationType.SUBSKILL_MESSAGE, "Axes.Combat.CriticalHit");
         }
 
         if (target instanceof Player) {
             Player defender = (Player) target;
 
-            if (UserManager.getPlayer(defender).useChatNotifications()) {
-                defender.sendMessage(LocaleLoader.getString("Axes.Combat.CritStruck"));
+            if (NotificationManager.doesPlayerUseNotifications(defender)) {
+                NotificationManager.sendPlayerInformation(defender, NotificationType.SUBSKILL_MESSAGE, "Axes.Combat.CritStruck");
             }
 
             damage = (damage * Axes.criticalHitPVPModifier) - damage;
@@ -100,15 +114,19 @@ public class AxesManager extends SkillManager {
      * @param target The {@link LivingEntity} being affected by Impact
      */
     public void impactCheck(LivingEntity target) {
-        int durabilityDamage = 1 + (getSkillLevel() / Axes.impactIncreaseLevel);
+        double durabilityDamage = getImpactDurabilityDamage();
 
         for (ItemStack armor : target.getEquipment().getArmorContents()) {
             if (armor != null && ItemUtils.isArmor(armor)) {
-                if (SkillUtils.activationSuccessful(SecondaryAbility.ARMOR_IMPACT, getPlayer(), Axes.impactChance, activationChance)) {
-                    SkillUtils.handleDurabilityChange(armor, durabilityDamage, Axes.impactMaxDurabilityModifier);
+                if (RandomChanceUtil.isActivationSuccessful(SkillActivationType.RANDOM_STATIC_CHANCE, SubSkillType.AXES_ARMOR_IMPACT, getPlayer())) {
+                    SkillUtils.handleDurabilityChange(armor, durabilityDamage, 1);
                 }
             }
         }
+    }
+
+    public double getImpactDurabilityDamage() {
+        return AdvancedConfig.getInstance().getImpactDurabilityDamageMultiplier() * RankUtils.getRank(getPlayer(), SubSkillType.AXES_ARMOR_IMPACT);
     }
 
     /**
@@ -117,7 +135,8 @@ public class AxesManager extends SkillManager {
      * @param target The {@link LivingEntity} being affected by the ability
      */
     public double greaterImpact(LivingEntity target) {
-        if (!SkillUtils.activationSuccessful(SecondaryAbility.GREATER_IMPACT, getPlayer(), Axes.greaterImpactChance, activationChance)) {
+        //static chance (3rd param)
+        if (!RandomChanceUtil.isActivationSuccessful(SkillActivationType.RANDOM_STATIC_CHANCE, SubSkillType.AXES_GREATER_IMPACT, getPlayer())) {
             return 0;
         }
 
@@ -127,14 +146,14 @@ public class AxesManager extends SkillManager {
         target.setVelocity(player.getLocation().getDirection().normalize().multiply(Axes.greaterImpactKnockbackMultiplier));
 
         if (mcMMOPlayer.useChatNotifications()) {
-            player.sendMessage(LocaleLoader.getString("Axes.Combat.GI.Proc"));
+            NotificationManager.sendPlayerInformation(player, NotificationType.SUBSKILL_MESSAGE, "Axes.Combat.GI.Proc");
         }
 
         if (target instanceof Player) {
             Player defender = (Player) target;
 
-            if (UserManager.getPlayer(defender).useChatNotifications()) {
-                defender.sendMessage(LocaleLoader.getString("Axes.Combat.GI.Struck"));
+            if (NotificationManager.doesPlayerUseNotifications(defender)) {
+                NotificationManager.sendPlayerInformation(defender, NotificationType.SUBSKILL_MESSAGE, "Axes.Combat.GI.Struck");
             }
         }
 

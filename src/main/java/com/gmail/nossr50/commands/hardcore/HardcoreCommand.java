@@ -1,12 +1,11 @@
 package com.gmail.nossr50.commands.hardcore;
 
-import org.bukkit.command.CommandSender;
-
-import com.gmail.nossr50.mcMMO;
 import com.gmail.nossr50.config.Config;
-import com.gmail.nossr50.datatypes.skills.SkillType;
+import com.gmail.nossr50.datatypes.skills.PrimarySkillType;
 import com.gmail.nossr50.locale.LocaleLoader;
+import com.gmail.nossr50.mcMMO;
 import com.gmail.nossr50.util.Permissions;
+import org.bukkit.command.CommandSender;
 
 public class HardcoreCommand extends HardcoreModeCommand {
     @Override
@@ -20,10 +19,10 @@ public class HardcoreCommand extends HardcoreModeCommand {
     }
 
     @Override
-    protected boolean checkEnabled(SkillType skill) {
+    protected boolean checkEnabled(PrimarySkillType skill) {
         if (skill == null) {
-            for (SkillType skillType : SkillType.values()) {
-                if (!skillType.getHardcoreStatLossEnabled()) {
+            for (PrimarySkillType primarySkillType : PrimarySkillType.values()) {
+                if (!primarySkillType.getHardcoreStatLossEnabled()) {
                     return false;
                 }
             }
@@ -35,12 +34,12 @@ public class HardcoreCommand extends HardcoreModeCommand {
     }
 
     @Override
-    protected void enable(SkillType skill) {
+    protected void enable(PrimarySkillType skill) {
         toggle(true, skill);
     }
 
     @Override
-    protected void disable(SkillType skill) {
+    protected void disable(PrimarySkillType skill) {
         toggle(false, skill);
     }
 
@@ -50,10 +49,10 @@ public class HardcoreCommand extends HardcoreModeCommand {
         sender.sendMessage(LocaleLoader.getString("Hardcore.DeathStatLoss.PercentageChanged", percent.format(newPercentage / 100.0D)));
     }
 
-    private void toggle(boolean enable, SkillType skill) {
+    private void toggle(boolean enable, PrimarySkillType skill) {
         if (skill == null) {
-            for (SkillType skillType : SkillType.NON_CHILD_SKILLS) {
-                skillType.setHardcoreStatLossEnabled(enable);
+            for (PrimarySkillType primarySkillType : PrimarySkillType.NON_CHILD_SKILLS) {
+                primarySkillType.setHardcoreStatLossEnabled(enable);
             }
         }
         else {

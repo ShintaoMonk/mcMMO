@@ -1,8 +1,15 @@
 package com.gmail.nossr50.skills.alchemy;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.gmail.nossr50.config.skills.alchemy.PotionConfig;
+import com.gmail.nossr50.datatypes.skills.SubSkillType;
+import com.gmail.nossr50.datatypes.skills.alchemy.AlchemyPotion;
+import com.gmail.nossr50.datatypes.skills.alchemy.PotionStage;
+import com.gmail.nossr50.events.fake.FakeBrewEvent;
+import com.gmail.nossr50.mcMMO;
+import com.gmail.nossr50.runnables.player.PlayerUpdateInventoryTask;
+import com.gmail.nossr50.runnables.skills.AlchemyBrewCheckTask;
+import com.gmail.nossr50.util.Permissions;
+import com.gmail.nossr50.util.player.UserManager;
 import org.bukkit.Material;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.BrewingStand;
@@ -14,16 +21,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 
-import com.gmail.nossr50.mcMMO;
-import com.gmail.nossr50.config.skills.alchemy.PotionConfig;
-import com.gmail.nossr50.datatypes.skills.SecondaryAbility;
-import com.gmail.nossr50.datatypes.skills.alchemy.AlchemyPotion;
-import com.gmail.nossr50.datatypes.skills.alchemy.PotionStage;
-import com.gmail.nossr50.events.fake.FakeBrewEvent;
-import com.gmail.nossr50.runnables.player.PlayerUpdateInventoryTask;
-import com.gmail.nossr50.runnables.skills.AlchemyBrewCheckTask;
-import com.gmail.nossr50.util.Permissions;
-import com.gmail.nossr50.util.player.UserManager;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class AlchemyPotionBrewer {
     public static boolean isValidBrew(Player player, ItemStack[] contents) {
@@ -94,7 +93,12 @@ public final class AlchemyPotionBrewer {
     }
 
     private static List<ItemStack> getValidIngredients(Player player) {
-        return PotionConfig.getInstance().getIngredients((player == null || !Permissions.secondaryAbilityEnabled(player, SecondaryAbility.CONCOCTIONS)) ? 1 : UserManager.getPlayer(player).getAlchemyManager().getTier());
+        if(player == null || UserManager.getPlayer(player) == null)
+        {
+            return PotionConfig.getInstance().getIngredients(1);
+        }
+
+        return PotionConfig.getInstance().getIngredients(!Permissions.isSubSkillEnabled(player, SubSkillType.ALCHEMY_CONCOCTIONS) ? 1 : UserManager.getPlayer(player).getAlchemyManager().getTier());
     }
 
     public static void finishBrewing(BlockState brewingStand, Player player, boolean forced) {
@@ -143,6 +147,7 @@ public final class AlchemyPotionBrewer {
             if (output != null && player != null) {
                 PotionStage potionStage = PotionStage.getPotionStage(input, output);
 
+                //TODO: hmm
                 if (UserManager.hasPlayerDataKey(player)) {
                     UserManager.getPlayer(player).getAlchemyManager().handlePotionBrewSuccesses(potionStage, 1);
                 }

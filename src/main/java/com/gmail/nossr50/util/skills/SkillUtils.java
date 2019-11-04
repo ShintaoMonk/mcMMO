@@ -1,8 +1,23 @@
 package com.gmail.nossr50.util.skills;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.gmail.nossr50.config.AdvancedConfig;
+import com.gmail.nossr50.config.Config;
+import com.gmail.nossr50.config.HiddenConfig;
+import com.gmail.nossr50.datatypes.experience.XPGainReason;
+import com.gmail.nossr50.datatypes.experience.XPGainSource;
+import com.gmail.nossr50.datatypes.interactions.NotificationType;
+import com.gmail.nossr50.datatypes.player.McMMOPlayer;
+import com.gmail.nossr50.datatypes.skills.PrimarySkillType;
+import com.gmail.nossr50.datatypes.skills.SubSkillType;
+import com.gmail.nossr50.datatypes.skills.SuperAbilityType;
+import com.gmail.nossr50.locale.LocaleLoader;
+import com.gmail.nossr50.mcMMO;
+import com.gmail.nossr50.util.ItemUtils;
+import com.gmail.nossr50.util.Misc;
+import com.gmail.nossr50.util.StringUtils;
+import com.gmail.nossr50.util.player.NotificationManager;
+import com.gmail.nossr50.util.player.UserManager;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -12,39 +27,61 @@ import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.material.MaterialData;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-import com.gmail.nossr50.mcMMO;
-import com.gmail.nossr50.config.AdvancedConfig;
-import com.gmail.nossr50.config.Config;
-import com.gmail.nossr50.config.HiddenConfig;
-import com.gmail.nossr50.datatypes.player.McMMOPlayer;
-import com.gmail.nossr50.datatypes.skills.AbilityType;
-import com.gmail.nossr50.datatypes.skills.SecondaryAbility;
-import com.gmail.nossr50.datatypes.skills.SkillType;
-import com.gmail.nossr50.events.skills.secondaryabilities.SecondaryAbilityEvent;
-import com.gmail.nossr50.events.skills.secondaryabilities.SecondaryAbilityWeightedActivationCheckEvent;
-import com.gmail.nossr50.locale.LocaleLoader;
-import com.gmail.nossr50.util.EventUtils;
-import com.gmail.nossr50.util.ItemUtils;
-import com.gmail.nossr50.util.Misc;
-import com.gmail.nossr50.util.StringUtils;
-import com.gmail.nossr50.util.player.UserManager;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 public class SkillUtils {
-    public static int handleFoodSkills(Player player, SkillType skill, int eventFoodLevel, int baseLevel, int maxLevel, int rankChange) {
-        int skillLevel = UserManager.getPlayer(player).getSkillLevel(skill);
+
+    public static void applyXpGain(McMMOPlayer mcMMOPlayer, PrimarySkillType skill, float xp, XPGainReason xpGainReason) {
+        mcMMOPlayer.beginXpGain(skill, xp, xpGainReason, XPGainSource.SELF);
+    }
+
+    public static void applyXpGain(McMMOPlayer mcMMOPlayer, PrimarySkillType skill, float xp, XPGainReason xpGainReason, XPGainSource xpGainSource) {
+        mcMMOPlayer.beginXpGain(skill, xp, xpGainReason, xpGainSource);
+    }
+
+    /*
+     * Skill Stat Calculations
+     */
+
+    public static String[] calculateLengthDisplayValues(Player player, float skillValue, PrimarySkillType skill) {
+        int maxLength = skill.getAbility().getMaxLength();
+        int abilityLengthVar = AdvancedConfig.getInstance().getAbilityLength();
+        int abilityLengthCap = AdvancedConfig.getInstance().getAbilityLengthCap();
+
+        int length;
+
+        if(abilityLengthCap > 0)
+        {
+            length =     (int) Math.min(abilityLengthCap, 2 + (skillValue / abilityLengthVar));
+        } else {
+            length = 2 + (int) (skillValue / abilityLengthVar);
+        }
+
+        int enduranceLength = PerksUtils.handleActivationPerks(player, length, maxLength);
+
+        if (maxLength != 0) {
+            length = Math.min(length, maxLength);
+        }
+
+        return new String[] { String.valueOf(length), String.valueOf(enduranceLength) };
+    }
+
+    /*
+     * Others
+     */
+
+    public static int handleFoodSkills(Player player, int eventFoodLevel, SubSkillType subSkillType) {
+        int curRank = RankUtils.getRank(player, subSkillType);
 
         int currentFoodLevel = player.getFoodLevel();
         int foodChange = eventFoodLevel - currentFoodLevel;
 
-        for (int i = baseLevel; i <= maxLevel; i += rankChange) {
-            if (skillLevel >= i) {
-                foodChange++;
-            }
-        }
+        foodChange+=curRank;
 
         return currentFoodLevel + foodChange;
     }
@@ -82,15 +119,15 @@ public class SkillUtils {
      * @return true if this is a valid skill, false otherwise
      */
     public static boolean isSkill(String skillName) {
-        return Config.getInstance().getLocale().equalsIgnoreCase("en_US") ? SkillType.getSkill(skillName) != null : isLocalizedSkill(skillName);
+        return Config.getInstance().getLocale().equalsIgnoreCase("en_US") ? PrimarySkillType.getSkill(skillName) != null : isLocalizedSkill(skillName);
     }
 
-    public static void sendSkillMessage(Player player, String message) {
+    public static void sendSkillMessage(Player player, NotificationType notificationType, String key) {
         Location location = player.getLocation();
 
         for (Player otherPlayer : player.getWorld().getPlayers()) {
             if (otherPlayer != player && Misc.isNear(location, otherPlayer.getLocation(), Misc.SKILL_MESSAGE_MAX_SENDING_DISTANCE)) {
-                otherPlayer.sendMessage(message);
+                NotificationManager.sendNearbyPlayersInformation(otherPlayer, notificationType, key, player.getName());
             }
         }
     }
@@ -132,8 +169,26 @@ public class SkillUtils {
             }
 
             McMMOPlayer mcMMOPlayer = UserManager.getPlayer(player);
-            SkillType skill = mcMMOPlayer.getAbilityMode(AbilityType.SUPER_BREAKER) ? SkillType.MINING : SkillType.EXCAVATION;
-            int ticks = PerksUtils.handleActivationPerks(player, 2 + (mcMMOPlayer.getSkillLevel(skill) / AdvancedConfig.getInstance().getAbilityLength()), skill.getAbility().getMaxLength()) * Misc.TICK_CONVERSION_FACTOR;
+
+            //Not Loaded
+            if(mcMMOPlayer == null)
+                return;
+
+            PrimarySkillType skill = mcMMOPlayer.getAbilityMode(SuperAbilityType.SUPER_BREAKER) ? PrimarySkillType.MINING : PrimarySkillType.EXCAVATION;
+
+            int abilityLengthVar = AdvancedConfig.getInstance().getAbilityLength();
+            int abilityLengthCap = AdvancedConfig.getInstance().getAbilityLengthCap();
+
+            int ticks;
+
+            if(abilityLengthCap > 0)
+            {
+                ticks = PerksUtils.handleActivationPerks(player,  Math.min(abilityLengthCap, 2 + (mcMMOPlayer.getSkillLevel(skill) / abilityLengthVar)),
+                        skill.getAbility().getMaxLength()) * Misc.TICK_CONVERSION_FACTOR;
+            } else {
+                ticks = PerksUtils.handleActivationPerks(player, 2 + ((mcMMOPlayer.getSkillLevel(skill)) / abilityLengthVar),
+                        skill.getAbility().getMaxLength()) * Misc.TICK_CONVERSION_FACTOR;
+            }
 
             PotionEffect abilityBuff = new PotionEffect(PotionEffectType.FAST_DIGGING, duration + ticks, amplifier + 10);
             player.addPotionEffect(abilityBuff, true);
@@ -187,7 +242,11 @@ public class SkillUtils {
      * @param durabilityModifier the amount to modify the durability by
      * @param maxDamageModifier the amount to adjust the max damage by
      */
-    public static void handleDurabilityChange(ItemStack itemStack, int durabilityModifier, double maxDamageModifier) {
+    public static void handleDurabilityChange(ItemStack itemStack, double durabilityModifier, double maxDamageModifier) {
+        if(itemStack.getItemMeta() != null && itemStack.getItemMeta().isUnbreakable()) {
+            return;
+        }
+
         Material type = itemStack.getType();
         short maxDurability = mcMMO.getRepairableManager().isRepairable(type) ? mcMMO.getRepairableManager().getRepairable(type).getMaximumDurability() : type.getMaxDurability();
         durabilityModifier = (int) Math.min(durabilityModifier / (itemStack.getEnchantmentLevel(Enchantment.DURABILITY) + 1), maxDurability * maxDamageModifier);
@@ -195,41 +254,8 @@ public class SkillUtils {
         itemStack.setDurability((short) Math.min(itemStack.getDurability() + durabilityModifier, maxDurability));
     }
 
-    public static boolean activationSuccessful(SecondaryAbility skillAbility, Player player, SkillType skill) {
-        return activationSuccessful(skillAbility, player, UserManager.getPlayer(player).getSkillLevel(skill), PerksUtils.handleLuckyPerks(player, skill));
-    }
-
-    public static boolean activationSuccessful(SecondaryAbility skillAbility, Player player, int skillLevel, int activationChance) {
-        return activationSuccessful(skillAbility, player, skillLevel, activationChance, AdvancedConfig.getInstance().getMaxChance(skillAbility), AdvancedConfig.getInstance().getMaxBonusLevel(skillAbility));
-    }
-
-    public static boolean activationSuccessful(SecondaryAbility skillAbility, Player player, int skillLevel, int activationChance, double maxChance, int maxLevel) {
-        double chance = (maxChance / maxLevel) * Math.min(skillLevel, maxLevel) / activationChance;
-        SecondaryAbilityWeightedActivationCheckEvent event = new SecondaryAbilityWeightedActivationCheckEvent(player, skillAbility, chance);
-        mcMMO.p.getServer().getPluginManager().callEvent(event);
-        return (event.getChance() * activationChance) > Misc.getRandom().nextInt(activationChance) && !event.isCancelled();
-    }
-
-    public static boolean activationSuccessful(SecondaryAbility skillAbility, Player player, double staticChance, int activationChance) {
-        double chance = staticChance / activationChance;
-        SecondaryAbilityWeightedActivationCheckEvent event = new SecondaryAbilityWeightedActivationCheckEvent(player, skillAbility, chance);
-        mcMMO.p.getServer().getPluginManager().callEvent(event);
-        return (event.getChance() * activationChance) > Misc.getRandom().nextInt(activationChance) && !event.isCancelled();
-    }
-
-    public static boolean activationSuccessful(SecondaryAbility skillAbility, Player player) {
-        SecondaryAbilityEvent event = EventUtils.callSecondaryAbilityEvent(player, skillAbility);
-        return !event.isCancelled();
-    }
-
-    public static boolean treasureDropSuccessful(Player player, double dropChance, int activationChance) {
-        SecondaryAbilityWeightedActivationCheckEvent event = new SecondaryAbilityWeightedActivationCheckEvent(player, SecondaryAbility.EXCAVATION_TREASURE_HUNTER, dropChance / activationChance);
-        mcMMO.p.getServer().getPluginManager().callEvent(event);
-        return (event.getChance() * activationChance) > (Misc.getRandom().nextDouble() * activationChance) && !event.isCancelled();
-    }
-
     private static boolean isLocalizedSkill(String skillName) {
-        for (SkillType skill : SkillType.values()) {
+        for (PrimarySkillType skill : PrimarySkillType.values()) {
             if (skillName.equalsIgnoreCase(LocaleLoader.getString(StringUtils.getCapitalized(skill.toString()) + ".SkillName"))) {
                 return true;
             }
@@ -252,7 +278,7 @@ public class SkillUtils {
             return Material.COBBLESTONE;
         }
         else if (ItemUtils.isWoodTool(inHand)) {
-            return Material.WOOD;
+            return Material.OAK_WOOD;
         }
         else if (ItemUtils.isLeatherArmor(inHand)) {
             return Material.LEATHER;
@@ -266,35 +292,33 @@ public class SkillUtils {
     }
 
     public static int getRepairAndSalvageQuantities(ItemStack item) {
-        return getRepairAndSalvageQuantities(item, getRepairAndSalvageItem(item), (byte) -1);
+        return getRepairAndSalvageQuantities(item.getType(), getRepairAndSalvageItem(item));
     }
 
-    public static int getRepairAndSalvageQuantities(ItemStack item, Material repairMaterial, byte repairMetadata) {
-        // Workaround for Bukkit bug where damaged items would not return any recipes
-        item = item.clone();
-        item.setDurability((short) 0);
-
+    public static int getRepairAndSalvageQuantities(Material itemMaterial, Material recipeMaterial) {
         int quantity = 0;
-        MaterialData repairData = repairMaterial != null ? new MaterialData(repairMaterial, repairMetadata) : null;
-        List<Recipe> recipes = mcMMO.p.getServer().getRecipesFor(item);
 
-        if (recipes.isEmpty()) {
-            return quantity;
-        }
+        for(Iterator<? extends Recipe> recipeIterator = Bukkit.getServer().recipeIterator(); recipeIterator.hasNext();) {
+            Recipe bukkitRecipe = recipeIterator.next();
 
-        Recipe recipe = recipes.get(0);
+            if(bukkitRecipe.getResult().getType() != itemMaterial)
+                continue;
 
-        if (recipe instanceof ShapelessRecipe) {
-            for (ItemStack ingredient : ((ShapelessRecipe) recipe).getIngredientList()) {
-                if (ingredient != null && (repairMaterial == null || ingredient.getType() == repairMaterial) && (repairMetadata == -1 || ingredient.getData().equals(repairData))) {
-                    quantity += ingredient.getAmount();
+            if(bukkitRecipe instanceof ShapelessRecipe) {
+                for (ItemStack ingredient : ((ShapelessRecipe) bukkitRecipe).getIngredientList()) {
+                    if (ingredient != null
+                            && (recipeMaterial == null || ingredient.getType() == recipeMaterial)
+                            && (ingredient.getType() == recipeMaterial)) {
+                        quantity += ingredient.getAmount();
+                    }
                 }
-            }
-        }
-        else if (recipe instanceof ShapedRecipe) {
-            for (ItemStack ingredient : ((ShapedRecipe) recipe).getIngredientMap().values()) {
-                if (ingredient != null && (repairMaterial == null || ingredient.getType() == repairMaterial) && (repairMetadata == -1 || ingredient.getData().equals(repairData))) {
-                    quantity += ingredient.getAmount();
+            } else if(bukkitRecipe instanceof ShapedRecipe) {
+                for (ItemStack ingredient : ((ShapedRecipe) bukkitRecipe).getIngredientMap().values()) {
+                    if (ingredient != null
+                            && (recipeMaterial == null || ingredient.getType() == recipeMaterial)
+                            && (ingredient.getType() == recipeMaterial)) {
+                        quantity += ingredient.getAmount();
+                    }
                 }
             }
         }

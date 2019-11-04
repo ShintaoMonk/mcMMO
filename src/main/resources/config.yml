@@ -8,8 +8,17 @@
 #  Settings for mcMMO in general
 ###
 General:
+        # Turning this on will scale mcMMO around 1-1000 with default scaling factor
+        # Everything in your config related to skill level requirements, skill level bonuses, etc will be multiplied by 10 when this mode is on
+        # This change is purely cosmetic, it retains the old feel of mcMMO where you could level up thousands of times
+    RetroMode:
+        Enabled: true
     Locale: en_US
+    AprilFoolsEvent: true
     MOTD_Enabled: true
+    EventBroadcasts: true
+    EventInfoOnPlayerJoin: true
+    AdminNotifications: true
     # Send a message to the player when his profile was successfully loaded
     Show_Profile_Loaded: false
     # Amount of time (in minutes) to wait between saves of player information
@@ -21,7 +30,7 @@ General:
     Prefer_Beta: false
     Power_Level_Cap: 0
     # Should mcMMO truncate levels if you lower your max level cap for a skillname
-    TruncateSkills: false
+    TruncateSkills: true
     # Should mcMMO print out debug messages?
     Verbose_Logging: false
     # Should mcMMO over-write configs to update, or make new ones ending in .new?
@@ -38,6 +47,8 @@ General:
 #  Settings for the mcMMO scoreboards
 ###
 Scoreboard:
+    # Set this to true to enable scoreboards
+    UseScoreboards: false
     # Display player's power levels below their names?
     Power_Level_Tags: false
 
@@ -135,6 +146,7 @@ Backups:
 ###
 MySQL:
     Enabled: false
+    Debug: false
     Database:
         User_Name: UserName
         User_Password: UserPassword
@@ -153,6 +165,7 @@ MySQL:
             Load: 20
             Save: 20
     Server:
+        SSL: true
         Port: 3306
         Address: localhost
 
@@ -222,13 +235,16 @@ Items:
         Item_Name: FEATHER
         Sound_Enabled: true
     Flux_Pickaxe:
-        Enabled: true
         Sound_Enabled: true
 
 #
 #  Settings for Parties
 ###
 Party:
+    # Enable Hurting other players in the same party
+    FriendlyFire: false
+    # Maximum size for a party, -1 for infinite
+    MaxSize: -1
     # Amount of time (in hours) to wait between automatically kicking old party members
     # To only run at server start, set to 0
     # To never kick old users, set to -1
@@ -300,8 +316,6 @@ Skills:
     Acrobatics:
         Enabled_For_PVP: true
         Enabled_For_PVE: true
-        Prevent_AFK_Leveling: true
-        Max_Tries_At_Same_Location: 3
         Prevent_Dodge_Lightning: false
         # Prevent earning Acrobatics XP a few seconds after teleporting
         XP_After_Teleport_Cooldown: 5
@@ -322,20 +336,24 @@ Skills:
         Enabled_For_PVP: true
         Enabled_For_PVE: true
         Level_Cap: 0
+        Ability_Activation_Level_Gate: 10
     Excavation:
         Level_Cap: 0
+        Ability_Activation_Level_Gate: 10
     Fishing:
         Level_Cap: 0
         Drops_Enabled: true
         Override_Vanilla_Treasures: true
         # Always catch fish, even when treasure is found
         Extra_Fish: false
+        Lure_Modifier: 4.0
     Herbalism:
         Level_Cap: 0
         Prevent_AFK_Leveling: true
     Mining:
         Level_Cap: 0
         Detonator_Name: FLINT_AND_STEEL
+        Ability_Activation_Level_Gate: 10
     Repair:
         Level_Cap: 0
         Anvil_Messages: true
@@ -358,6 +376,7 @@ Skills:
         Enabled_For_PVP: true
         Enabled_For_PVE: true
         Level_Cap: 0
+        Ability_Activation_Level_Gate: 10
     Taming:
         Enabled_For_PVP: true
         Enabled_For_PVE: true
@@ -373,27 +392,24 @@ Skills:
                 Item_Amount: 10
                 Summon_Amount: 1
                 Summon_Length: 240
-                Summon_Max_Amount: 10
+                Per_Player_Limit: 2
             Ocelot:
-                Item_Material: RAW_FISH
+                Item_Material: COD
                 Item_Amount: 10
                 Summon_Amount: 1
                 Summon_Length: 240
-                Summon_Max_Amount: 10
+                Per_Player_Limit: 1
             Horse:
                 Item_Material: APPLE
                 Item_Amount: 10
                 Summon_Amount: 1
                 Summon_Length: 240
-                Summon_Max_Amount: 10
-
-            # Range to check for nearby pets when using Call Of The Wild, 0 will disable the check
-            Range: 40.0
-
+                Per_Player_Limit: 1
     Unarmed:
         Enabled_For_PVP: true
         Enabled_For_PVE: true
         Level_Cap: 0
+        Ability_Activation_Level_Gate: 10
         Block_Cracker:
             SmoothBrick_To_CrackedBrick: true
         # When using Unarmed, picked up items will automatically get moved to a free slot instead of going in the slot
@@ -404,57 +420,98 @@ Skills:
     Woodcutting:
         Tree_Feller_Sounds: true
         Level_Cap: 0
+        Ability_Activation_Level_Gate: 10
 
 #
 #  Settings for Double Drops
 ###
-Double_Drops:
+Bonus_Drops:
     Herbalism:
-        Beetroot_Block: true
+        Chorus_Fruit: true
+        Chorus_Plant: true
+        Beetroots: true
+        Beetroot: true
         Brown_Mushroom: true
-        Beetroot_Block: true
         Cactus: true
+        Carrots: true
         Carrot: true
         Cocoa: true
-        Crops: true
-        Melon_Block: true
-        Nether_Warts: true
-        Potato: true
+        Cocoa_Beans: true
+        Wheat: true
+        Melon: true
+        Melon_Slice: true
+        Nether_Wart: true
+        Potatoes: true
+        Potatoe: true
         Pumpkin: true
         Red_Mushroom: true
-        Red_Rose: true
-        Sugar_Cane_Block: true
+        Sugar_Cane: true
         Vine: true
-        Water_Lily: true
-        Yellow_Flower: true
+        Lily_Pad: true
+        Red_Tulip: true
+        White_Tulip: true
+        Pink_Tulip: true
+        Orange_Tulip: true
+        Dandelion: true
+        Poppy: true
+        Blue_Orchid: true
+        Allium: true
+        Azure_Bluet: true
+        Oxeye_Daisy: true
+        Sunflower: true
+        Lilac: true
+        Rose_Bush: true
+        Peony: true
+        Lily_Of_The_Valley: true
     Mining:
+        Andesite: true
+        Diorite: true
+        Granite: true
         Coal_Ore: true
+        Coal: true
         Diamond_Ore: true
+        Diamond: true
         Emerald_Ore: true
-        Ender_Stone: true
+        Emerald: true
+        End_Stone: true
         Glowstone: true
+        Glowstone_Dust: true
         Gold_Ore: true
         Iron_Ore: true
+        Iron_Ingot: true
         Lapis_Ore: true
+        Lapis_Lazuli: true
         Mossy_Cobblestone: true
         Netherrack: true
         Obsidian: true
-        Quartz_Ore: true
+        Nether_Quartz_Ore: true
+        Nether_Quartz: true
         Redstone_Ore: true
+        Redstone: true
         Sandstone: true
         Stone: true
+        Cobblestone: true
     Woodcutting:
-        Acacia: true
-        Birch: true
-        Dark_Oak: true
-        Generic: true
-        Jungle: true
-        Redwood: true
+        Acacia_Wood: true
+        Acacia_Log: true
+        Birch_Wood: true
+        Birch_Log: true
+        Dark_Oak_Wood: true
+        Dark_Oak_Log: true
+        Oak_Wood: true
+        Oak_Log: true
+        Jungle_Wood: true
+        Jungle_Log: true
+        Spruce_Wood: true
+        Spruce_Log: true
 
 #
 #  Settings for commands
 ###
 Commands:
+    Skills:
+        # Turn this off to prevent mcMMO URL links from being sent
+        URL_Links: true
     Generic:
         # If true, when using partial names in commands mcMMO will try to look for a match from
         # the offline players. Enabling this might slow the server down if there are a lot of offline players.
@@ -489,8 +546,8 @@ Commands:
 ###
 Particles:
     # These settings determine if fireworks should get launched when a player activates/deactivates an ability
-    Ability_Activation: true
-    Ability_Deactivation: true
+    Ability_Activation: false
+    Ability_Deactivation: false
 
     # Determines if the fireworks should be a large ball or a small one
     LargeFireworks: true

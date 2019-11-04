@@ -1,25 +1,26 @@
 package com.gmail.nossr50.runnables.skills;
 
+import com.gmail.nossr50.config.Config;
+import com.gmail.nossr50.datatypes.interactions.NotificationType;
+import com.gmail.nossr50.datatypes.player.McMMOPlayer;
+import com.gmail.nossr50.datatypes.skills.SuperAbilityType;
+import com.gmail.nossr50.mcMMO;
+import com.gmail.nossr50.util.EventUtils;
+import com.gmail.nossr50.util.Misc;
+import com.gmail.nossr50.util.player.NotificationManager;
+import com.gmail.nossr50.util.skills.ParticleEffectUtils;
+import com.gmail.nossr50.util.skills.PerksUtils;
+import com.gmail.nossr50.util.skills.SkillUtils;
 import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import com.gmail.nossr50.mcMMO;
-import com.gmail.nossr50.config.Config;
-import com.gmail.nossr50.datatypes.player.McMMOPlayer;
-import com.gmail.nossr50.datatypes.skills.AbilityType;
-import com.gmail.nossr50.util.EventUtils;
-import com.gmail.nossr50.util.Misc;
-import com.gmail.nossr50.util.skills.ParticleEffectUtils;
-import com.gmail.nossr50.util.skills.PerksUtils;
-import com.gmail.nossr50.util.skills.SkillUtils;
-
 public class AbilityDisableTask extends BukkitRunnable {
     private McMMOPlayer mcMMOPlayer;
-    private AbilityType ability;
+    private SuperAbilityType ability;
 
-    public AbilityDisableTask(McMMOPlayer mcMMOPlayer, AbilityType ability) {
+    public AbilityDisableTask(McMMOPlayer mcMMOPlayer, SuperAbilityType ability) {
         this.mcMMOPlayer = mcMMOPlayer;
         this.ability = ability;
     }
@@ -56,11 +57,13 @@ public class AbilityDisableTask extends BukkitRunnable {
         ParticleEffectUtils.playAbilityDisabledEffect(player);
 
         if (mcMMOPlayer.useChatNotifications()) {
-            player.sendMessage(ability.getAbilityOff());
+            //player.sendMessage(ability.getAbilityOff());
+            NotificationManager.sendPlayerInformation(player, NotificationType.ABILITY_OFF, ability.getAbilityOff());
         }
 
-        SkillUtils.sendSkillMessage(player, ability.getAbilityPlayerOff(player));
-        new AbilityCooldownTask(mcMMOPlayer, ability).runTaskLaterAsynchronously(mcMMO.p, PerksUtils.handleCooldownPerks(player, ability.getCooldown()) * Misc.TICK_CONVERSION_FACTOR);
+
+        SkillUtils.sendSkillMessage(player, NotificationType.SUPER_ABILITY_ALERT_OTHERS, ability.getAbilityPlayerOff());
+        new AbilityCooldownTask(mcMMOPlayer, ability).runTaskLater(mcMMO.p, PerksUtils.handleCooldownPerks(player, ability.getCooldown()) * Misc.TICK_CONVERSION_FACTOR);
     }
 
     private void resendChunkRadiusAt(Player player, int radius) {

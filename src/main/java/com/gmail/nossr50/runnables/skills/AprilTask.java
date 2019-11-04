@@ -1,15 +1,14 @@
 package com.gmail.nossr50.runnables.skills;
 
-import org.bukkit.ChatColor;
-import org.bukkit.Sound;
-import org.bukkit.Statistic;
-import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
-
 import com.gmail.nossr50.mcMMO;
 import com.gmail.nossr50.util.HolidayManager;
 import com.gmail.nossr50.util.Misc;
-import com.gmail.nossr50.util.adapter.SoundAdapter;
+import com.gmail.nossr50.util.sounds.SoundManager;
+import com.gmail.nossr50.util.sounds.SoundType;
+import org.bukkit.ChatColor;
+import org.bukkit.Statistic;
+import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
 public class AprilTask extends BukkitRunnable {
 
@@ -24,9 +23,9 @@ public class AprilTask extends BukkitRunnable {
             int random = Misc.getRandom().nextInt(40) + 11;
             int betterRandom = Misc.getRandom().nextInt(2000);
             if (betterRandom == 0) {
-                player.playSound(player.getLocation(), SoundAdapter.LEVEL_UP, Misc.LEVELUP_VOLUME, Misc.LEVELUP_PITCH);
+                SoundManager.sendSound(player, player.getLocation(), SoundType.LEVEL_UP);
                 player.sendMessage(unknown("superskill") + " skill increased by 1. Total (" + unknown("12") + ")");
-                fireworksShow(player);
+//                fireworksShow(player);
             }
 
             for (Statistic statistic : mcMMO.getHolidayManager().movementStatistics) {
@@ -38,7 +37,7 @@ public class AprilTask extends BukkitRunnable {
         }
     }
 
-    private void fireworksShow(final Player player) {
+    /*private void fireworksShow(final Player player) {
         final int firework_amount = 10;
         for (int i = 0; i < firework_amount; i++) {
             int delay = (int) (Misc.getRandom().nextDouble() * 3 * Misc.TICK_CONVERSION_FACTOR) + 4;
@@ -49,7 +48,7 @@ public class AprilTask extends BukkitRunnable {
                 }
             }, delay);
         }
-    }
+    }*/
 
     private String unknown(String string) {
         return ChatColor.MAGIC + string + ChatColor.RESET + ChatColor.YELLOW;

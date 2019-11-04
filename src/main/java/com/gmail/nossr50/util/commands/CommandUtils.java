@@ -1,24 +1,22 @@
 package com.gmail.nossr50.util.commands;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.bukkit.OfflinePlayer;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-
-import com.gmail.nossr50.mcMMO;
 import com.gmail.nossr50.config.Config;
 import com.gmail.nossr50.datatypes.player.McMMOPlayer;
 import com.gmail.nossr50.datatypes.player.PlayerProfile;
-import com.gmail.nossr50.datatypes.skills.SkillType;
+import com.gmail.nossr50.datatypes.skills.PrimarySkillType;
 import com.gmail.nossr50.locale.LocaleLoader;
+import com.gmail.nossr50.mcMMO;
 import com.gmail.nossr50.util.Misc;
 import com.gmail.nossr50.util.StringUtils;
 import com.gmail.nossr50.util.player.UserManager;
 import com.gmail.nossr50.util.skills.SkillUtils;
-
 import com.google.common.collect.ImmutableList;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public final class CommandUtils {
     public static final List<String> TRUE_FALSE_OPTIONS = ImmutableList.of("on", "off", "true", "false", "enabled", "disabled");
@@ -26,7 +24,7 @@ public final class CommandUtils {
 
     private CommandUtils() {}
 
-    public static boolean isChildSkill(CommandSender sender, SkillType skill) {
+    public static boolean isChildSkill(CommandSender sender, PrimarySkillType skill) {
         if (skill == null || !skill.isChildSkill()) {
             return false;
         }
@@ -35,21 +33,11 @@ public final class CommandUtils {
         return true;
     }
 
-    public static boolean inspectOffline(CommandSender sender, PlayerProfile profile, boolean hasPermission) {
-        if (unloadedProfile(sender, profile)) {
-            return true;
-        }
-
-        if (!hasPermission) {
+    public static boolean tooFar(CommandSender sender, Player target, boolean hasPermission) {
+        if(!target.isOnline() && !hasPermission) {
             sender.sendMessage(LocaleLoader.getString("Inspect.Offline"));
             return true;
-        }
-
-        return false;
-    }
-
-    public static boolean tooFar(CommandSender sender, Player target, boolean hasPermission) {
-        if (sender instanceof Player && !Misc.isNear(((Player) sender).getLocation(), target.getLocation(), Config.getInstance().getInspectDistance()) && !hasPermission) {
+        } else if (sender instanceof Player && !Misc.isNear(((Player) sender).getLocation(), target.getLocation(), Config.getInstance().getInspectDistance()) && !hasPermission) {
             sender.sendMessage(LocaleLoader.getString("Inspect.TooFar"));
             return true;
         }
@@ -181,7 +169,7 @@ public final class CommandUtils {
      * @param display The sender to display stats to
      */
     public static void printGatheringSkills(Player inspect, CommandSender display) {
-        printGroupedSkillData(inspect, display, LocaleLoader.getString("Stats.Header.Gathering"), SkillType.GATHERING_SKILLS);
+        printGroupedSkillData(inspect, display, LocaleLoader.getString("Stats.Header.Gathering"), PrimarySkillType.GATHERING_SKILLS);
     }
 
     public static void printGatheringSkills(Player player) {
@@ -195,7 +183,7 @@ public final class CommandUtils {
      * @param display The sender to display stats to
      */
     public static void printCombatSkills(Player inspect, CommandSender display) {
-        printGroupedSkillData(inspect, display, LocaleLoader.getString("Stats.Header.Combat"), SkillType.COMBAT_SKILLS);
+        printGroupedSkillData(inspect, display, LocaleLoader.getString("Stats.Header.Combat"), PrimarySkillType.COMBAT_SKILLS);
     }
 
     public static void printCombatSkills(Player player) {
@@ -209,28 +197,33 @@ public final class CommandUtils {
      * @param display The sender to display stats to
      */
     public static void printMiscSkills(Player inspect, CommandSender display) {
-        printGroupedSkillData(inspect, display, LocaleLoader.getString("Stats.Header.Misc"), SkillType.MISC_SKILLS);
+        printGroupedSkillData(inspect, display, LocaleLoader.getString("Stats.Header.Misc"), PrimarySkillType.MISC_SKILLS);
     }
 
     public static void printMiscSkills(Player player) {
         printMiscSkills(player, player);
     }
 
-    public static String displaySkill(PlayerProfile profile, SkillType skill) {
+    public static String displaySkill(PlayerProfile profile, PrimarySkillType skill) {
         if (skill.isChildSkill()) {
             return LocaleLoader.getString("Skills.ChildStats", LocaleLoader.getString(StringUtils.getCapitalized(skill.toString()) + ".Listener") + " ", profile.getSkillLevel(skill));
         }
-
+        if (profile.getSkillLevel(skill) == Config.getInstance().getLevelCap(skill)){
+            return LocaleLoader.getString("Skills.Stats", LocaleLoader.getString(StringUtils.getCapitalized(skill.toString()) + ".Listener") + " ", profile.getSkillLevel(skill), profile.getSkillXpLevel(skill), LocaleLoader.getString("Skills.MaxXP"));
+        }
         return LocaleLoader.getString("Skills.Stats", LocaleLoader.getString(StringUtils.getCapitalized(skill.toString()) + ".Listener") + " ", profile.getSkillLevel(skill), profile.getSkillXpLevel(skill), profile.getXpToLevel(skill));
     }
 
-    private static void printGroupedSkillData(Player inspect, CommandSender display, String header, List<SkillType> skillGroup) {
+    private static void printGroupedSkillData(Player inspect, CommandSender display, String header, List<PrimarySkillType> skillGroup) {
+        if(UserManager.getPlayer(inspect) == null)
+            return;
+
         PlayerProfile profile = UserManager.getPlayer(inspect).getProfile();
 
         List<String> displayData = new ArrayList<String>();
         displayData.add(header);
 
-        for (SkillType skill : skillGroup) {
+        for (PrimarySkillType skill : skillGroup) {
             if (skill.getPermissions(inspect)) {
                 displayData.add(displaySkill(profile, skill));
             }
@@ -296,6 +289,11 @@ public final class CommandUtils {
 
         for (OfflinePlayer offlinePlayer : mcMMO.p.getServer().getOfflinePlayers()) {
             String playerName = offlinePlayer.getName();
+            
+            if (playerName == null) { //Do null checking here to detect corrupted data before sending it throuogh .equals
+            	System.err.println("[McMMO] Player data file with UIID " + offlinePlayer.getUniqueId() + " is missing a player name. This may be a legacy file from before bukkit.lastKnownName. This should be okay to ignore.");
+            	continue; //Don't let an error here interrupt the loop
+            }
 
             if (partialName.equalsIgnoreCase(playerName)) {
                 // Exact match

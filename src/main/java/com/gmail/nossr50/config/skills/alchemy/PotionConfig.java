@@ -1,24 +1,19 @@
 package com.gmail.nossr50.config.skills.alchemy;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.gmail.nossr50.config.ConfigLoader;
+import com.gmail.nossr50.datatypes.skills.alchemy.AlchemyPotion;
+import com.gmail.nossr50.mcMMO;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.potion.Potion;
-import org.bukkit.potion.PotionData;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
-import org.bukkit.potion.PotionType;
+import org.bukkit.potion.*;
 
-import com.gmail.nossr50.mcMMO;
-import com.gmail.nossr50.config.ConfigLoader;
-import com.gmail.nossr50.datatypes.skills.alchemy.AlchemyPotion;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class PotionConfig extends ConfigLoader {
     private static PotionConfig instance;
@@ -210,13 +205,10 @@ public class PotionConfig extends ConfigLoader {
             return null;
         }
 
-        String[] parts = ingredient.split(":");
-
-        Material material = parts.length > 0 ? Material.getMaterial(parts[0]) : null;
-        short data = parts.length > 1 ? Short.parseShort(parts[1]) : 0;
+        Material material = Material.getMaterial(ingredient);
 
         if (material != null) {
-            return new ItemStack(material, 1, data);
+            return new ItemStack(material, 1);
         }
 
         return null;

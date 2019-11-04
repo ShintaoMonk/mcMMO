@@ -1,10 +1,9 @@
 package com.gmail.nossr50.events.experience;
 
+import com.gmail.nossr50.datatypes.experience.XPGainReason;
+import com.gmail.nossr50.datatypes.skills.PrimarySkillType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
-
-import com.gmail.nossr50.datatypes.skills.SkillType;
-import com.gmail.nossr50.datatypes.skills.XPGainReason;
 
 /**
  * Called when a player gains XP in a skill
@@ -13,12 +12,12 @@ public class McMMOPlayerXpGainEvent extends McMMOPlayerExperienceEvent {
     private float xpGained;
 
     @Deprecated
-    public McMMOPlayerXpGainEvent(Player player, SkillType skill, float xpGained) {
+    public McMMOPlayerXpGainEvent(Player player, PrimarySkillType skill, float xpGained) {
         super(player, skill, XPGainReason.UNKNOWN);
         this.xpGained = xpGained;
     }
 
-    public McMMOPlayerXpGainEvent(Player player, SkillType skill, float xpGained, XPGainReason xpGainReason) {
+    public McMMOPlayerXpGainEvent(Player player, PrimarySkillType skill, float xpGained, XPGainReason xpGainReason) {
         super(player, skill, xpGainReason);
         this.xpGained = xpGained;
     }

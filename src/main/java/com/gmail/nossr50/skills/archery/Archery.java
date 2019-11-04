@@ -1,23 +1,22 @@
 package com.gmail.nossr50.skills.archery;
 
+import com.gmail.nossr50.config.AdvancedConfig;
+import com.gmail.nossr50.config.experience.ExperienceConfig;
+import com.gmail.nossr50.datatypes.skills.SubSkillType;
+import com.gmail.nossr50.util.Misc;
+import com.gmail.nossr50.util.skills.RankUtils;
+import org.bukkit.Material;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.bukkit.Material;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.inventory.ItemStack;
-
-import com.gmail.nossr50.config.AdvancedConfig;
-import com.gmail.nossr50.config.experience.ExperienceConfig;
-import com.gmail.nossr50.util.Misc;
-
 public class Archery {
     private static List<TrackedEntity> trackedEntities = new ArrayList<TrackedEntity>();
 
-    public static int    skillShotIncreaseLevel      = AdvancedConfig.getInstance().getSkillShotIncreaseLevel();
-    public static double skillShotIncreasePercentage = AdvancedConfig.getInstance().getSkillShotIncreasePercentage();
-    public static double skillShotMaxBonusPercentage = AdvancedConfig.getInstance().getSkillShotBonusMax();
     public static double skillShotMaxBonusDamage     = AdvancedConfig.getInstance().getSkillShotDamageMax();
 
     public static double dazeBonusDamage = AdvancedConfig.getInstance().getDazeBonusDamage();
@@ -61,5 +60,16 @@ public class Archery {
                 return;
             }
         }
+    }
+
+    public static double getSkillShotBonusDamage(Player player, double oldDamage)
+    {
+        double damageBonusPercent = getDamageBonusPercent(player);
+        double newDamage = oldDamage + (oldDamage * damageBonusPercent);
+        return Math.min(newDamage, Archery.skillShotMaxBonusDamage);
+    }
+
+    public static double getDamageBonusPercent(Player player) {
+        return ((RankUtils.getRank(player, SubSkillType.ARCHERY_SKILL_SHOT)) * AdvancedConfig.getInstance().getSkillShotRankDamageMultiplier()) / 100.0D;
     }
 }

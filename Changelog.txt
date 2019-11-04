@@ -1,11 +1,1171 @@
-Changelog:
-Versions without changelogs probably had very small misc fixes, like tweaks to the source code
+Version 2.1.110
+    Fixed a dupe bug
+    Actually fixed Block Cracker
+    You can now crack Infested Stone Bricks with Block Cracker
+    Added Lithuanian locale (thanks Vyciokazz)
 
-Key:
-  + Addition
-  = Fix
-  ! Change
-  - Removal
+Version 2.1.109
+    Block Cracker will now correctly crack stone_bricks during Berserk again
+    Added Lily_Of_The_Valley to the Bonus Drops list in config.yml (you'll probably want to add this manually) which enables it to double drop
+    Added missing 1.14 blocks to ability/tool activation blacklists
+    Fixed spamming of incompatible worldguard version message
+    Updated Italian locale (thanks Fabrimat)
+
+Version 2.1.108
+    Fixed an amusing exploit for easy leveling in Acrobatics
+    mcMMO should no longer break if FAWE is being used in conjunction with WG on the server
+    Improved WG compatibility, mcMMO will now check if WG has loaded properly before hooking into it, which will prevent mcMMO from breaking if WG could not load properly.
+    mcMMO now loads after worlds do during start up (which is what it should be doing)
+
+    NOTES:
+    Mobs will now only reward Dodge XP a certain amount of times
+    You can turn off this exploit prevention by disabling ExploitFix.Acrobatics in experience.yml
+
+Version 2.1.107
+    Fixed an exploit that allowed automated XP gain for Excavation
+    Fixed encoding of russian translation
+    New API event McMMOPlayerProfileLoadEvent (thanks Shrek5InTheatres2019)
+
+Version 2.1.106
+    Added a few missing blocks to the ability blacklist tables (prevents readying/using abilities on certain blocks that have right click functionality)
+    Updated Japanese locale (thanks ethernetcat)
+    Updated Simplified Chinese locale (thanks Fu_Meng)
+
+Version 2.1.105
+    mcMMO will reset players scoreboard to the main scoreboard if they move into a blacklisted world
+    Beast lore now shows max jump height and other tweaks (Thanks QuantumToasted)
+    If the server has enabled level caps (which are not on by default) players will be shown that they are at max level instead of seeing how much XP needed to reach an impossible level (thanks Shrek5InTheatres2019)
+    Large update to Italian locale (thanks Leomixer17)
+
+    NOTES:
+    The scoreboard change should result in mcMMO removing scoreboards from players properly when they enter a black listed world. This is a hacky band aid fix as our scoreboard code is archaic and needs to be rewritten in 2.2 and not 2.1. Expect a scoreboard overhaul sometime in the future.
+
+Version 2.1.104
+    Fixed a bug resulting in many errors when using Rupture
+    Large update to the Japanese locale (thanks ethernetcat)
+    Updated Hungarian locale (thanks andris)
+
+Version 2.1.103
+    Treasure item amount will default to 1 if not specified instead of breaking mcMMO
+    Fishing treasures will now return the amount defined in treasures config file, an option to randomize amounts will be coming in the future. See notes.
+    Fixed a bug where Tree Feller was only rewarding 1 XP per log broken no matter the circumstances
+    Fixed an issue with salvage checking the incorrect level requirement
+    Updated Italian locale (thanks Leomixer17)
+    Fixed grammar in one of the Salvage strings (thanks QuantumToasted)
+
+    NOTES:
+    Sometime in 2014 a decision was made that any fishing treasure over the amount of 1 will be randomized in its yield, while this is not necessarily a bad thing it means control over the drop is a bit random. I've removed this randomness temporarily, in the future you will be able to chose if the amount is randomized or static.
+
+Version 2.1.102
+    Scoreboards will now be removed from players who teleport to a blacklisted world
+    Fixed a bug where Rupture could trigger itself
+
+Version 2.1.101
+    Fixed an exploit where chorus plants could be used to gain automatic XP
+    Added blast furnace, cartography table, grindstone, lectern, loom, scaffolding, smoker, stonecutter, and sweet berry bush to the list of internal blocks that don't trigger tool readying
+
+Version 2.1.100
+    Fixed a bug where plants could double drop when the skill was not yet unlocked
+    Fixed a bug where plants ALWAYS double dropped
+    mcnotify command now checks that it's being executed by a player
+    Fixed some concurrency concerns around BleedTasks
+    Fixed an NPE that may occur with random chances on a player without loaded data
+    Updated Russian locale (thanks myfbone!)
+
+Version 2.1.99
+    MASSIVE update to the Russian locale (ru) credit to myfbone
+    Debug mode (/mmodebug) will now print info about XP perks and how they are modifying your incoming XP
+
+Version 2.1.98
+    Fixed a bug that prevented Taming XP from combat
+
+Version 2.1.97
+    mcMMO is compatible with 1.14.4 (Didn't require any changes)
+    Fixed a NPE that could occur if a pet participated in combat and its master's mcMMO data was not available
+    mcMMO now properly closes its region files as it creates them (thanks Yukiiro-Nite)
+    Updated Hungarian locale (thanks andris)
+
+Version 2.1.96
+    Added the setting 'Skills.General.LimitBreak.AllowPVE' to advanced.yml to allow Limit Break damage bonus to apply in PVE again, defaults to false
+    Updated Limit Break locale strings
+    Fixed a few more places where 'Archaeology' was misspelled in the locale
+    Added the setting 'ExploitFix.PistonCheating' to experience.yml at the request of a user
+    Added a missing 's' to Nether_Bricks (thanks Sikatsu) in experience.yml
+
+    NOTES:
+    The Skill Tooltips are a bit limited right now, in the future they will be more flexible. In order to reflect that Limit Break doesn't always work in PVE (now up to server settings) I added a crappy note to its hover window tip. I'll be fixing this in the future.
+    You shouldn't need to update you config entry for Nether_Bricks, I believe that file updates automatically (the old config system is a bit janky, some stuff updates, some other stuff doesn't.)
+    PistonCheating prevents blocks from being marked "natural" once they've been moved, we've never had an option for this before.
+    A discord user requested it, its a strange request but I added it anyways.
+    Of course, it defaults to "true" which prevents cheating with pistons.
+
+Version 2.1.95
+    Added missing Chorus_Fruit & Chorus_Plant entries to Herbalism's Bonus Drops in config.yml (See notes)
+    Limit Break now does dramatically less damage to players with lower grades of armor
+    Limit Break damage bonuses now only apply to Players
+    Updated in game text to reflect changes to Limit Break
+    Fixed a bug where opponents used your stats instead of their own to activate Iron Grip
+    Fixed a bug preventing Wandering Traders from granting XP
+    Fixed a bug that prevented Chorus Tree's from giving full XP if you broke anything other than the bottom block
+    Fixed a bug which could cause Large Fern's to reward less XP
+    Fixed a bug where certain herbalism crops could have fewer than intended bonus drops
+    Fixed a bug involving Ender Pearl and Acrobatics
+    Added some protection to Acrobatics to prevent gaining too much XP in one Roll.
+    Added 'Carrots, Cocoa, Potatoes, Wheat, Beetroots, Nether_Wart' to Herbalism in experience.yml (See notes)
+    Removed the _Ripe entries from experience.yml (no longer used)
+    Updated locale string 'Swords.SubSkill.SwordsLimitBreak.Description' & 'Swords.SubSkill.SwordsLimitBreak.Stat'
+    Added missing 'Chorus_Flower' entry to herbalism in experience.yml
+    Added some debug messages about XP gains if you are in debug mode
+    Added some debug messages for Acrobatics if you are in debug mode
+    Added some debug messages for Herbalism if you are in debug mode
+
+    NOTES:
+    Add 'Chorus_Fruit' and 'Chorus_Plant' under Bonus_Drops.Herbalism in config.yml or you will not be getting double drops for Chorus Fruit.
+    You shouldn't need to add "Chorus_Flower, Carrots, Cocoa, Potatoes, Wheat, Beetroots, Nether_Wart" to your experience file, it seems that config file updates automatically for missing entries.
+
+Version 2.1.94
+    2 new devs have joined the mcMMO team (electronicboy, kashike), bringing the active dev team to 3 including myself! Strings relating to authors of mcMMO have been updated to reflect this
+    Fixed a bug where 2 people using Tree Feller could result in the tree being rejected for being too big
+    New command /mmodebug (or /mcmmodebugmode) - Prints useful information when players punch blocks while they are in debug mode
+    mcMMO no longer prints debug information when you attack stuff with the debug stick, use the new command (/mmodebug) instead
+    Added locale string 'mcMMO.Description.FormerDevs'
+    Added locale string 'mcMMO.Template.Prefix'
+    Added locale string 'Commands.Mmodebug.Toggle'
+    Added locale string 'Commands.Description.mmodebug'
+    Tweaked locale string 'mcMMO.Description'
+    Updated Japanese locale (thanks snake)
+    Updated hu_HU locale (thanks andris155)
+
+Version 2.1.93
+    Fixed a bug where players would be told they could not breed summoned animals when the animals weren't summoned (bug didn't actually do anything besides send you a message)
+
+Version 2.1.92
+    Call Of The Wild (COTW) no longer cares if entities of the same type are nearby when attempting to summon a new entity
+    Fixed a bug where COTW summon limit was global instead of per player
+    If you are playing in 1.14 mcMMO will now summon cats instead of ocelots
+    The default summon limit for COTW is now per player instead of global which is how it should be, for wolves this defaults to 2, for other entities it defaults to 1
+    The COTW setting named Summon_Max_Amount in config.yml has been renamed to Per_Player_Limit
+    By default players are no longer allowed to breed COTW summoned animals with other animals, you can turn this off (see the notes)
+    If a player tries to breed animals with a COTW animal and the server settings prevent this, they are informed via a message that it is not allowed
+    If the COTW summon has a lifespan, players are now informed about this lifespan when the entity is first summoned
+    COTW entities now send the player a message when they die, time out, or get removed through other means
+    COTW summons now have their name prefixed with some colored text to to make it easier to identify them.
+    COTW summons now despawn if their owner logs out
+    There is now a small 150ms window in which you cannot summon an entity via COTW to prevent accidentally summoning extra entities
+    COTW Horses, Cats, and Wolves now always spawn in as adults
+    Changed the sound effect for COTW (Fireworks -> Pop)
+    Most COTW messages have been tweaked and new COTW messages have been added
+    Added new setting to experience.yml 'ExploitFix.COTWBreeding' - Prevents breeding with COTW summoned entities when set to true, defaults to true
+    Removed the 'mcmmo.ability.taming.callofthewild.renamepets' permission node as it is seen as unnecessary
+
+    Removed locale strings
+        Taming.Summon.Fail.Ocelot
+        Taming.Summon.Fail.Wolf
+        Taming.Summon.Fail.Horse
+        Taming.Summon.Fail.TooMany
+        Taming.Summon.Lifespan
+    Added new locale strings
+        Taming.Summon.COTW.NeedMoreItems
+        Taming.Summon.COTW.BreedingDisallowed
+        Taming.Summon.COTW.Success.WithLifespan
+        Taming.Summon.COTW.Success.WithoutLifespan
+        Taming.Summon.COTW.Limit
+        Taming.Summon.COTW.TimeExpired
+    Tweaked locale string
+        Taming.Summon.Name.Format
+
+    NOTES:
+    I plan to rework Call of The Wild (COTW) significantly in the upcoming content patch, until then I have made several tweaks to it.
+
+    COTW Summoning Requirement Changes
+    It is intentional that you are not supposed to be able to COTW summon something that you already have tamed, but mcMMO was not checking this properly.
+    So previous to this patch, if you tried to summon a wolf and wolves were nearby, it would fail. This is not intentional behaviour and was a bug.
+    The correct behaviour is that if you try to summon a wolf and you already have wolves, it should fail.
+    I was fixing this bug when it occurred to me, why do we even care if nearby tamed wolves owned by you exist if you are trying to summon a temporary one?
+    As a result of this train of thought, I have removed this restriction on COTW and several other tweaks have been made as a result of this line of thinking.
+    There was also an issue involving how many COTW entities could be out at once, for some reason the limit was applied globally and defaulted to 10, so if 10 players had COTW entities out no one else would be able to summon anything. I have fixed this.
+    You can set the lifespan to 0 in the config to make it so that COTW entities last until a server restart or the player logs out.
+
+    COTW Breeding Change
+    It was never intentional for COTW summoned entities to be breedable, by default they will not be. You can change this by setting 'ExploitFix.COTWBreeding' to false in experience.yml
+
+Version 2.1.91
+    mcMMO is now more compatible with plugins that spawn arrows in unexpected ways, this fixes some NPE in mcMMO when using certain plugins
+    Fixed a bug where Unarmed was using the same CD timer for every player in the server (thanks slop_me)
+
+Version 2.1.90
+    Salvaged items now travel much slower towards the player
+    Books from salvage will now travel towards the player
+    Salvaged items travelling towards you will now have their speed adjusted based on distance
+
+    Common Materials found when mining have had their XP gains reduced and rare materials have had their XP gains increased
+    Diamond Ore has had its XP increased from 750 to 2400
+    Gold Ore has had its XP increased from 350 to 1300
+    Iron Ore has had its XP increased from 250 to 900
+    Lapis Ore has had its XP increased from 400 to 800
+    Nether Quartz Ore has had its XP increased from 100 to 300
+    Redstone Ore has had its XP increased from 150 to 600
+    Blue_Ice has had its default XP value reduced to 15
+    Packed_Ice has had its default XP value reduced to 15
+    Netherrack has had its default XP value reduced to 15
+    Coal Ore has had its XP increased from 100 to 400
+    Stone has had its XP decreased from 30 to 15
+    Granite has had its XP decreased from 30 to 15
+    Andesite has had its XP decreased from 30 to 15
+    Diorite has had its XP decreased from 30 to 15
+    End Stone has had its XP decreased from 30 to 15
+    Glow Stone has had its XP decreased from 30 to 15
+    End Bricks has had its XP decreased from 200 to 50
+
+
+    NOTES:
+    You can either apply the default XP changes manually to experience.yml or delete it to generate a new file
+
+    Sorry about salvaged items traveling too quickly, in testing on my LAN server with ideal conditions they always entered my inventory and never shot past me so the high speed of the items was not an apparent issue.
+    I've tested the new changes to how they travel towards you pretty thoroughly, they never go fast enough to go past you and they adjust their speed based on distance to you with some speed limitations.
+    In testing the new tweaks work well whether the salvage anvil is above, below, or at the same height as you.
+
+    I'll be tweaking XP values across all skills more carefully in the upcoming content patch due after 2.2. Some tweaks to XP gains will be applied for 2.2.
+
+Version 2.1.89
+    Many changes were made to this version that affect default values in the config, read the notes carefully if you wish to apply these changes. They are optional.
+    mcMMO is compatible with the new 1.14.3, in addition to this it is still compatible with 1.14.2, 1.14.1, 1.14, and 1.13.2. This did not require any changes to be made to mcMMO, but I thought I'd add this to the notes for those wondering.
+
+    RetroMode is the default level scaling mode again
+    The default level for players has been changed back to 0 from 1 (you can change it back to 1 by editing 'Skills.General.StartingLevel' in advanced.yml) if you wish to apply this change read the notes
+    Super Abilities now scale in length up to level 100/1000 instead of 50/500 by default (you can edit this in advanced.yml under 'Skills.General.Ability.Length.xxx')
+    Early Game Boost now only applies when leveling from level 0 to level 1
+    Removed the config setting 'MaxLevelMultiplier' from experience.yml as it is no longer used.
+    When finding a treasure via Excavation players have a 1-8% chance to have a small amount vanilla experience orbs to be found alongside the treasure, the chance and number of orbs are based on the players Archaeology rank
+    Tweaked the locale string 'Excavation.SubSkill.Archaeology.Description'
+    Added locale string 'Excavation.SubSkill.Archaeology.Stat'
+    Added locale string 'Excavation.SubSkill.Archaeology.Stat.Extra'
+    Tweaked the locale string 'Fishing.SubSkill.MasterAngler.Stat'
+    The interval at which you can gain Acrobatics XP from fall damage has been reduced to 3 seconds from 10 seconds, this will be configurable in 2.2.
+
+    When using WorldGuard (WG) with mcMMO, mcMMO now examines WG more carefully to determine if it is a compatible version or not, see the notes. Keep in mind WG is optional and not needed to run mcMMO.
+    Fixed a bug that could result in Tree Feller failing to remove parts of a tree in snowy biomes. (This fix won't apply retroactively to old trees, see the notes)
+    Updated Japanese locale (thanks snake)
+    Tree Feller and other Super Abilities will damage tools with the Enchantment named 'Durability/Unbreaking' again, this does not apply to the NBT tag named Ubreakable (Unbreakable NBT tag is safe from damage however, try not to confuse them as they share similar names)
+    Added new setting 'ExploitFix.TreeFellerReducedXP' to experience.yml
+    Tree Feller will no longer give full XP for each block destroyed and instead give diminishing returns on XP for each block removed. You can turn this off by setting 'ExploitFix.TreeFellerReducedXP' in experience.yml to false
+    Many skills which used to unlock at level 5/50 now unlock at level 1 instead
+    Arrow Retrieval now unlocks at level 1 in both Standard and RetroMode
+    Skill Shot now unlocks at level 1 in both Standard and RetroMode
+    Dodge now unlocks at level 1 in both Standard and RetroMode
+    Critical Strikes now unlocks at level 1 in both Standard and RetroMode
+    Armor Impact now unlocks at level 1 in both Standard and RetroMode
+    Beast Lore now unlocks at level 1 in both Standard and RetroMode
+    Call Of The Wild now unlocks at level 1 in both Standard and RetroMode
+    Scrap Collector now unlocks at level 1 in both Standard and RetroMode
+    Treasure Hunter now unlocks at level 1 in both Standard and RetroMode
+    Rupture now unlocks at level 1 in both Standard and RetroMode
+    Iron Arm Style now unlocks at level 1 in both Standard and RetroMode
+    Harvest Lumber now unlocks at level 1 in both Standard and RetroMode
+    Archaeology now unlocks at level 1 in both Standard and RetroMode
+    Repair Mastery now unlocks at level 1 in both Standard and RetroMode
+    Double Drops (Herbalism and Mining) now have ranks and unlock at level 1 in both Standard and RetroMode
+    Concoctions rank 2 now unlocks at Level 1 for both Standard and RetroMode
+    Serrated Strikes now unlocks at levels 5/50 instead of 10/100
+    Berserk now unlocks at levels 5/50 instead of 10/100
+
+    NOTES:
+    I'm looking into adding 1.12.2 support sooner than expected.
+
+    Editing your config files is not required for this patch (and never will be), however I would highly recommend it. Read the notes below this line carefully.
+    If you want to update to this patch easily and you don't mind default config values, delete skillranks.yml, advanced.yml, and experience.yml before starting your server with 2.1.89 of mcMMO applied.
+    Many skills now unlock at level 1 and the default starting level is back to 0. It is recommended you change this number from 1 to 0 manually by editing 'Skills.General.StartingLevel' in advanced.yml or deleting advanced.yml and generating a new file when 2.1.89 starts.
+    It is recommended you make the manual edits to skillranks.yml to apply this change or delete skillranks.yml and a new one will be generated once you start 2.1.89.
+
+    Early Game Boost was used to help players get to level 5 quickly by boosting their XP until they got there, this caused some confusion as they appeared to be 'learning a skill' for multiple levels, on RetroMode this lasted until level 50.
+    I have changed Early Game Boost to only last from level 0-1 on both RetroMode and Standard, and now important skills are unlocked at level 1.
+    I was going to wait until 2.2 was done to deploy this change, but 2.2 is some time away and the previous system was causing some confusion.
+    Early Game Boost gives players extra XP for skills that are level 0, you can turn this system off by setting 'EarlyGameBoost.Enabled' in experience.yml to false
+    Early Game Boost will show 'Learning a new skill...' if XP bars are enabled
+
+    https://mcmmo.org/wiki/World_guard - A list of WG flags supported by mcMMO.
+    It is not necessary to have WG installed, but if you do have WG installed mcMMO hooks into it to provide some additional features.
+    Previously mcMMO used to determine if WG was compatible just by checking to see if it was version 7 of WG, however version 7 of WG is not guaranteed to be compatible as necessary classes that mcMMO hooks into were added during its development and some users are still running early dev versions of WG7.
+    In order to decrease the chance of error, mcMMO now uses reflection when checking to see if WG is compatible in addition to checking its version number, if its not compatible mcMMO will print a message and refrain from hooking into WG.
+    WG is an optional dependency for mcMMO, and unfortunately before this change if mcMMO thought you were running a compatible version of WG and it turned out you weren't then mcMMO would not function correctly.
+
+    Archaeology does something now, it will be tweaked again in the future. Previously rank 1 of Archaeology was required to find treasures but that was all it did, now each rank of Archaeology also adds a small chance to find experience orbs when a player finds treasure.
+
+    In a prior patch I removed damage on tools if they had Unbreakable NBT or Unbreaking Enchantment, at the time I made this change I did not realize they were different things and just shared the same name, this patch fixes this mistake. My intention was to prevent damage on tools with the NBT unbreakable tag which makes an item never suffer from durability loss.
+    mcMMO reduces damage to tools from super abilities if they have the "Durability/Unbreaking" enchantment already, this behaviour has been in mcMMO for a long time.
+
+    Tree Feller will now give reduced XP per block destroyed by Tree Feller and will never go below 1 XP per block, you can turn this off with 'ExploitFix.TreeFellerReducedXP' in experience.yml
+    There was a bug fixed in this patch that prevents an issue where Tree Feller was not removing all blocks left behind, unfortunately this will only affect new trees made in the world. The only trees that suffered from this bug were ones in snowy areas that had snow form on them.
+
+    RetroMode and Standard mode will be getting renamed in 2.2, probably to something like 1000-scale and 100-scale respectively.
+    Retro Mode was accidental genius is the short reason for the change to make it the default level scaling for mcMMO again.
+    Standard Mode is not going anywhere, it is just opt-in now instead of the default.
+    If you delete config.yml you will need to turn RetroMode off to use Standard mode as mcMMO doesn't keep track of what level scaling you are using outside of that.
+
+Version 2.1.88
+    mcMMO is now more compatible with a plugin named Project Korra
+    mcMMO will no longer process combat triggers for damage at or below 0
+
+Version 2.1.87
+    (Level caps are not on by default in mcMMO, this is something you can turn on)
+
+    Players who reach either the power level cap or skill level cap will now be informed that they have done so
+    XP Bars will no longer be sent to players who have reached the power level or skill level cap respectively
+    Level up messages will no longer be sent to players who have reached the power level or skill level cap respectively
+    Fixed a bug where mcMMO would send level up notifications to a player if the custom level up event from mcMMO was cancelled
+    New locale strings 'LevelCap.PowerLevel' & 'LevelCap.Skill'
+
+Version 2.1.86
+    Players will no longer be told they got a perfect result when salvaging if they are below max skill level
+    Salvage results will now travel towards the player instead of moving in a random direction
+    (FIX) You cannot view stats of players who are offline if your server limits the range on inspect for you via permissions or settings
+    (FIX) Players will no longer be told they lack skill in salvage if they already qualify for the best possible result for the item
+    (FIX) Fixed a bug where arcane salvage was being used to calculate salvage results instead of scrap collector
+    (FIX) Added the missing locale color for 'Commands.Party.Commands'
+    Modified colors used in locale strings 'Salvage.Skills.Lottery.Normal', 'Salvage.Skills.Lottery.Perfect', and 'Profile.Loading.FailurePlayer'
+    When failing to load a profile mcMMO will increase the amount of time it waits before reattempting to load the profile for each failure
+
+    NOTES:
+    You can (and always have been able) to turn off the inspect range check by setting it to 0 in the config
+    2.2 is around the corner, most things are functional, still a lot of work left to do.
+
+Version 2.1.85
+    Fixed a nearly 6 year old bug where Super Repair was not included as a child permission under Repair ability permission nodes (which meant some players would not have access to this skill)
+    Fixed a bug that could prevent salvage from working for certain players
+    Renamed the advanced salvage permission node to 'mcmmo.ability.salvage.scrapcollector'
+    Fixed a bug that would send players skill unlock notifications if they did not have the permission node for that skill
+    Dramatically increased the chance of receiving full materials when salvaging
+
+Version 2.1.84
+    Added some code to make mcMMO more compatible with EpicSpawners
+
+Version 2.1.83
+    You can no longer set party members on fire with your bow
+    (FIX) Arrow Retrieval will no longer work with piercing enchant on crossbows
+    WG Flags should now correctly recognize when a projectile belongs to a player and respect flag settings
+    Updated hu_HU locale (thanks andris155)
+
+Version 2.1.82
+    Added new WG flag 'mcmmo-hardcore' if set to negative players will not be penalized by hardcore mode (if hardcore mode is enabled) it defaults to true
+    Added proper error handling when loading parties file
+    Fixed an error that could occur when using mcrank on an offline player
+    You can now use mcrank on offline players by default
+    You can now use inspect on offline players by default
+    Removed the offline inspect/mcrank permissions
+    Updated Chinese locale (thanks to the user named 89009332 from github)
+    Added some redundancy checks when loading profiles (NPC checks to be specific)
+
+    NOTES:
+    There were reasons to prevent inspecting offline players in the past, I don't see any reason for them anymore so I've removed the restriction.
+
+Version 2.1.81
+    Fixed a bug where Arrow Deflect would never trigger outside of PVP
+    Fixed a bug where failing to salvage enchantments incorrectly colored the text
+    mcMMO no longer allows players to keep enchantments exceeding normal limitations by default when salvaging or repairing (you can turn this off in the config, see below)
+    Added new setting 'ExploitFix.UnsafeEnchantments' to experience.yml, turn this on to allow players to salvage/repair enchantments higher than normal game restrictions
+
+    NOTES:
+    If a player tries to salvage/repair an item with an illegal enchant (for example Sharpness X) it will downgrade that item to the highest legal version when calculating rewards
+    If you don't like this change you can turn it off in experience.yml under 'ExploitFix.UnsafeEnchantments'
+
+
+Version 2.1.80
+    (Fix) mcMMO now respects the NBT "Unbreakable" tag and does not deal durability damage to items with that tag
+
+Version 2.1.79
+    Updated Japanese locale (Thanks snake0053)
+    Fixed a NPE that could happen when using Tree Feller with an unenchanted Axe
+
+Version 2.1.78
+    Shovels no longer take more than 1 diamond to repair
+    Tools with the unbreaking enchantment no longer take extra damage from ability usage, they are still subject to the normal durability damage from breaking blocks though.
+
+Version 2.1.77
+    Added minimum quantity back to Repair config
+
+    NOTES: I removed this last patch because I did not consider that server admins might be allowing users to repair items without crafting recipes (as of last patch mcMMO determines minimum quantity via counting ingredients in a recipe)
+    If you do not define minimum quantity in the repair config, mcMMO will grab the minimum quantity automatically as I programmed it to do as of last patch, otherwise if it is defined, mcMMO will respect that and use that for calculations.
+    The minimum quanitty should be set to the number of ingredients used to craft the recipe, for example 8 for diamond chestplate etc, you do not need to define this unless you are allowing players to repair custom items.
+
+Version 2.1.76
+    Advanced Salvage has been renamed to Scrap Collector
+    Scrap Collector has 8 ranks, the first rank is unlocked at level 2 (Level 20 in RetroMode)
+    You can not salvage without at least 1 rank in Scrap Collector now (formerly Advanced Salvage)
+    Fixed a bug where Repair was repairing too much
+    Fixed a bug where Arcane Salvage was used to determine how many materials a player could salvage from an item instead of Scrap Collector (formerly Advanced Salvage)
+    Fixed a bug where messages about an item being too damage to salvage were being sent twice
+    Removed the minimum quantity field from the repair config
+    Removed the item data (metadata) field from repair config as its not used anymore
+    Salvage will no longer return the max amount of materials possible, instead you are guaranteed one item and then some luck is involved on how many items are returned.
+    Updated Chinese locale (thanks to the user named 89009332 from github)
+
+    New locale strings
+        Salvage.Skills.Lottery.Normal
+        Salvage.Skills.Lottery.Perfect
+        Salvage.Skills.Lottery.Untrained
+        Salvage.SubSkill.ScrapCollector.Name
+        Salvage.SubSkill.ScrapCollector.Description
+        Salvage.SubSkill.ScrapCollector.Stat
+
+    (API) SALVAGE_ARCANE_SALVAGE in SubSkillType has been renamed to SALVAGE_SCRAP_COLLECTOR
+
+    NOTES:
+    You do not need to update your configs for this update.
+
+    How Salvage works
+    As an example, say you had enough skill to gain up to 5 items from salvaging something, and that item has enough durability to yield up to 5 materials, salvage will play out like this...
+    First off, you will be guaranteed 1 material, after this you have 80% chance to get the next material, if successful, another dice roll is conducted but lowers your odds by 20%, you chance to succeed will never fall below 33%
+    If you fail a dice roll, it will still conduct dice rolls for the remaining maximum amount of materials returned but your odds of success are only lowered upon a successful dice roll, the sum of the successful dice rolls is used to calculate how many items you are given back, the first item is guaranteed and has no dice rolls, which means for example the Diamond Shovel will always succeed.
+
+Version 2.1.75
+    Fixed a bug that prevented Fortune from working correctly if a Double Drop was triggered
+
+Version 2.1.74
+    Fixed a NPE that could occur during certain events if a skill was disabled in coreskills.yml (Sorry!)
+
+Version 2.1.73
+    Fixed a NPE that could occur if an entire skill was disabled in coreskills.yml
+
+Version 2.1.72
+    Fixed a NPE if a server shutdown with no player data needing to be saved (the error is harmless but spammy)
+    Fixed a NPE that could occur if Roll was disabled in coreskills.yml
+
+Version 2.1.71
+    Salvage will now always ask for confirmation before breaking your items (instead of only asking for enchanted items)
+    Repair will now always ask for confirmation before repairing items (instead of only asking for enchanted items)
+    Gold & Iron Blocks will no longer trigger tool ready messages
+    Salvage & Repair anvils will no longer work on multi-item stacks
+
+    NOTES: You can still turn the confirmation off in config.yml
+
+Version 2.1.70
+    Added new DatabaseAPI to the API package, has features relating to database operations
+    Fixed a bug where shulker boxes (without colors) would activate tool ready messages
+
+Version 2.1.69
+    Fixed a few places where mcMMO would not save player data immediately which may cause players to lose a few minutes of progress
+
+    A big thanks to Sleepyflea for helping test this patch and report this bug.
+
+Version 2.1.68
+    Updated Japanese locale (thanks Snake)
+    Fixed a bug where consuming food in the off hand did not trigger the Diet abilities
+
+Version 2.1.67
+    The XP bar now reflects whether or not the player is receiving the early game boost
+    Players who are receiving an early game boost will be shown "Learning a skill..." as the title of the XP bar while gaining XP
+    New locale string 'XPBar.Template.EarlyGameBoost'
+
+    NOTES:
+    You can turn off this system in experience.yml 'EarlyGameBoost.Enabled'
+    The Early Game Boost is a system in which players receive drastically increased XP gains for the first few levels (until the first set of skills are unlocked)
+    With default settings, this means players will be receiving boosted XP for the first 5 levels (50 for Retro)
+    The Early Game Boost ends when players get the first skill in each ability under default settings
+    The main purpose of this system is to alleviate progression issues with a few skills where the first set of unlocked abilities drastically increase how fun it is to level the skill
+    The secondary purpose of this system is to alleviate any psychological issues when grinding towards the first set of unlocks by making the first set of unlocks happen quickly
+    This system has been in place for a few versions now, but without an in game indicator of what was going on.
+    If you have XP bars off there is still no indicator that this system is in place, I'll address that at some point.
+
+Version 2.1.66
+    Fixed a bug that could happen if a player was removed from the DB when using MySQL/MariaDB when the user was offline
+    Fixed a minor memory leak for MySQL
+
+Version 2.1.65
+    Corrected a bug that would cause RetroMode to use Linear formula regardless of setting
+
+Version 2.1.64
+    Corrected how Standard mode (1-100 scaling) XP to next level was calculated, it is now a true 1:10 ratio with Retro (1-1000) scale, which is how it was intended to be to begin with
+    Fixed a bug that caused skill messages to spam nearby players
+    (API) method to get XP in FormulaManager has been renamed to getXPtoNextLevel(...), this shouldn't break anything as plugins should be using our Experience API methods instead of this
+    (API) Added method getLevel(Player player, PrimarySkillType primarySkillType) to ExperienceAPI.java
+
+
+    NOTE: The net result of this change is it will take a bit longer to level with Standard, but it should not be a drastic change. You might not even notice it.
+    Standard is meant to take the same amount of time to level from levels 1-100 as it takes Retro to do 1-1000, this change corrects from errors in the code that made Standard actually take less XP than Retro despite intending for it to be a cosmetic difference in progression.
+    I made a google sheet visualizing the difference between Standard and Retro Mode using default settings and Linear formula - https://docs.google.com/spreadsheets/d/1VlJtvNHlypACHyz_zulEdhgLwFjL01xMPkqlnu0XBSs/edit?usp=sharing
+
+Version 2.1.63
+    Fixed Armor Impact not scaling by skill rank
+    Significantly Buffed the amount of durability damage incurred by a successful Armor Impact
+    Added new setting to advanced.yml 'Skills.Axes.ArmorImpact.DamagePerRank' which is multiplied against Armor Impact's skill level to determine damage done to armor
+    Fixed a bug that caused creative mode players to gain XP when qualifying for early game XP boosts
+    Removed the damage cap setting for Armor Impact, it is inherently capped now based on its max rank and damage setting
+    Updated hu_HU locale (thanks andris155)
+    Updated ja_JP locale (thanks snake)
+
+    NOTES:
+    Armor Impact only has a 25% chance to go off, and for it to only incur 20 durability damage seemed incredibly underwhelming, I've buffed it quite a bit.
+    You can change it back to its underwhelming self by setting DamagePerRank to 1.0
+    Based on feedback I may tweak the number again or other properties of this skill
+
+Version 2.1.62
+    Added a new admin notification system, sensitive commands will print chat messages to "admins" (players with either Operator status or admin chat permission)
+    Added a setting to disable the new admin notifications to config.yml 'General.AdminNotifications' (this will be more configurable in 2.2)
+    OPs and players with the admin chat permission will now see details about XP rate event commands regardless of whether or not the XP rate event messages are enabled
+    Updated hu_HU locale (thanks andris155)
+    Added XP for mining Magma_Block (default 30 XP - Update your config, see notes)
+    Diamond tools & armor in the repair config now have a minimum level of 0 (Update your config, temporary hotfix, 2.2 addresses this issue, see notes)
+    Guardian default combat XP multiplier reduced from 3.0 to 1.0 (update config if you want this change)
+    New locale string - 'Server.ConsoleName' the name of the server console, this will be used in place of player names when sending admin notifications out if the command was used from console
+    New locale string - 'Notifications.Admin.Format.Others' style formatting + prefix for admin notifications used in the other new strings below
+    New locale string - 'Notifications.Admin.Format.Self' style formatting + prefix for admin command confirmations sent to the user who executed the command
+    New locale string - 'Notifications.Admin.XPRate.Start.Self' sent to the user who modifies the XP rate regardless of whether or not messages for the event are enabled
+    New locale string - 'Notifications.Admin.XPRate.Start.Others' details of who started an XP rate event are sent to players who have Operator status or admin chat permission when the command to start or modify XP of an event has been issued
+    New locale string - 'Notifications.Admin.XPRate.End.Self' sent to the user who ended the XP rate event regardless of whether or not messages for the event are enabled
+    New locale string - 'Notifications.Admin.XPRate.End.Others' details of who ended an XP rate event are sent to players who have Operator status or admin chat permission when the command to end the event has been issued
+
+    NOTES:
+    Admin notifications currently only reports use of the XP rate command, it will be expanded to support other commands in upcoming patches
+    Add an entry of 'Magma_Block: 30' under Mining in experience.yml section titled "Experience_Values" (or you can delete the file to generate a new one with default values, 2.2 is coming soon which will have brand new configs so you could just wait for that
+    2.2 is the config rewrite, in this rewrite Repair and Salvage configs have been partially rewritten, it is not intended for Diamond Repair to take until level 50 in Standard level scaling to be available, since it'd be redundant to fix this in 2.1.X when 2.2 fixes it and its about to come out, the minimum level has temporarily been changed to 0. You can either update your repair.vanilla.yml config manually or delete it to generate a new one.
+
+    Admin notifications are a step in the right direction for finding naughty admins in mcMMO, I will be changing which permission node is used for players to be considered an admin in the future as not everyone wants or uses admin chat.
+    I expect to add logging of admin commands which will be viewable in game via command, so you won't have to have access to the servers log files to view who has been executing what.
+
+Version 2.1.61
+    Fixed the locale string formatting of 'Mining.SubSkill.DoubleDrops.Stat'
+    Updated the Japanese locale (thanks snake0053)
+    Added toggle to turn off event message broadcasts (XP rate) to config.yml - 'General.EventBroadcasts'
+    Added toggle to not inform players of events when they join (XP rate, etc) to config.yml 'General.EventInfoOnPlayerJoin'
+    Added anti-exploit protection for cobble/stone farms which can be automated, to turn this off you can toggle the new config options 'ExploitFix.LavaStoneAndCobbleFarming' in experience.yml
+
+    NOTE: The toggle for event message broadcasts is separate from the titles being shown, that's another config option (titles are the BIG TEXT in the middle of the screen)
+    NOTE: The new anti-stone/cobble automation will not prevent XP gains from obsidian, since Obsidian requires some effort to farm
+
+Version 2.1.60
+    Fixed a NPE error if a LivingEntity's target was set to null
+    Fixed a bug where tamed mobs could kill themselves if their owner shot them once
+    Corrected a typo when naming entities summoned by COTW (Locale string - Taming.Summon.Name.Format)
+    Fixed a bug where tamed mobs could have hearts instead of their name in their own death messages
+    Fixed a bug where multi-block crops would fail to double/triple drop (Sugar Cane, Cactus, etc)
+    Optimized the bonus drop code to reduce overhead
+
+Version 2.1.59
+    Raised the overfishing limit from 3 to 10
+    Improved the overfishing messages to be more clear about its mechanics
+    Overfishing locale keys renamed "Fishing.ScarcityTip" and "Fishing.LowResourcesTip"
+
+    NOTES: This and other exploit prevention measures are much more customizable in 2.2, which shouldn't be too far off.
+
+Version 2.1.58
+    Fixed the wrong locale string being used for Mining Double Drops
+
+Version 2.1.57
+    Fixed an incredibly rare dupe bug that only happened with VERY specific config options that was extremely difficult to pull off
+
+Version 2.1.56
+    Very large update to the zh_CN Chinese language file (thanks Dream_m)
+
+Version 2.1.55
+    Fixed a bug that could occur when adding UUIDs to old outdated DBs
+
+Version 2.1.54
+    Fixed a bug where the Skill 'Understanding the Art' was preventing vanilla experience orbs from furnaces
+    Fixed 'Understanding the Art' not correctly boosting vanilla XP from furnaces
+
+Version 2.1.53
+    Fixed a critical bug where players earned too much XP
+
+Version 2.1.52
+    Updated Japanese locale (thanks snake0053)
+    Added a toggle for the early game XP boost to experience.yml 'EarlyGameBoost.Enabled'
+    Added a max level multiplier for determining early game boosts cutoff to experience.yml 'EarlyGameBoost.MaxLevelMultiplier'
+
+Version 2.1.51
+    You can now customize a locale outside of the JAR! (Thanks mikroskeem)
+    Added a new locale reload command 'mmolocalereload' (Thanks mikroskeem)
+    Locales can now be overriden by placing a file with an appropriate name inside /plugins/mcMMO/locales/ (Thanks mikroskeem)
+
+    NOTES
+    You can find the up to date current en_US locale entries here: https://github.com/mcMMO-Dev/mcMMO/blob/master/src/main/resources/locale/locale_en_US.properties
+    You do NOT have to replace the whole locale, you can replace only the strings you want to!
+    Locales only support ASCII and UTF16 characters at the moment, so you'll need to run special characters through a UTF16 converter (google it) to get them to work, I'll be fixing this in the future!
+    The locale name must match the internal file you are overriding (ie: locale_en_US.properties)
+    Locale will first check for a users locale file, if it doesn't exist it will use internal resources (files inside the JAR)
+    If a locale is found, it will use locale entries from that file, if any entries are missing, it will use entries from en_US inside the JAR
+    The locale file names are structured like this 'locale_XX_XX.properties', replace XX with your country codes, if you are not overriding en_US you will have to change the targetted locale inside config.yml
+
+Version 2.1.50
+    Fixed a bug where early game XP boost (level 1-5) didn't function in certain circumstances
+    Updated German locale (thanks OverCrave)
+    Added missing Herbalism XP values for: Bamboo, Cornflower, Lily of the valley, Wither rose (thanks Zed-I)
+    Added missing Mining XP values for: Stone Bricks, Cracked Stone Bricks, Mossy Stone Bricks, Chiseled Stone Bricks, Prismarine Bricks, Dark Prismarine, Sea Lantern (thanks Zed-I)
+    Added missing Combat XP multiplier for: Wandering Trader (thanks Zed-I)
+
+    Notes:
+    If you haven't upgraded mcMMO since version 2.1.47 or before you will not need to do these steps as the experience file will update once automatically.
+    You can either delete experience.yml to generate a new one or edit it manually
+    This is what the default experience.yml looks like
+    https://paste.gg/p/anonymous/946f62ce7dff4ab7a87cae70c0266313
+
+
+Version 2.1.49
+    Added sweet berry bush to Herbalism XP (Update your experience.yml config or delete it to gen a new one)
+    Fixed a bug where falling blocks were not marked as unnatural in water
+    Fixed a bug where tool lower notifications were being called async when they are sync only
+    Fixed NPE when checking inventory location
+    Improved herbalism compatibility with anti-cheat (thanks LogGits)
+
+    NOTE: This is what the default herbalism XP table looks like
+    https://paste.gg/p/anonymous/1022088f20cf44298870930e9bc58e8a
+
+Version 2.1.48
+    1.14 Support
+    Added Cats, Foxes, and Pandas to Taming XP rewards
+    Added Cats, Foxes, Pandas, Trader Llamas, Pillagers, and Ravagers to Combat XP rewards
+    "Experience" section of experience.yml has been renamed to "Experience_Values"
+    Dodge now gives 800 XP
+    Roll now gives 600 XP
+    Fall now gives 600 XP
+
+    The first 5/50 levels of skills now give large amounts of XP so players get key early skills much faster
+        Note: First 5 in Standard, first 50 in Retro
+
+    Dev Notes:
+    I will be making a write up soon explaining near future plans for mcMMO and what is going on with the config update, abstraction update, etc...
+    Currently this version of mcMMO will work on both 1.13 and 1.14, in the abstraction update I will expand compatible versions of mcMMO to include: 1.14 / 1.13.2 / 1.12.2 / 1.8.8 / Sponge 1.14
+    It is not necessary to update your configs if you are upgrading from 1.13 -> 1.14, however if you had custom XP values in your experience.yml you will want to update your config.
+    Acrobatics XP was buffed since many AFK counter-measures were put into place to prevent repetitive grinding.
+    Experience node in experience.yml was renamed to "automatically" update configs for the new stuff 1.14
+    There are 4 updates planned for mcMMO, including a patreon rewards update, a large content update, a config update, and backwards compatibility for 1.13/1.12/1.8.8 and support for Sponge
+
+Version 2.1.47
+    Fix NPE when party leader is offline and players grab a party list
+
+Version 2.1.46
+    Party member lists now show the whole party, including offline players again.
+    Party lists now have special markers for players who are in shared XP range
+    Party lists now have special markers for players who are offline
+    Party lists now have special markers for the party leader
+    Fixed an error where bleed was setting health outside minimum values
+    [See NOTE] Fixed a bug where Creepers and Zombies were not dropping the correct heads from Shake (thanks Zed-I)
+    [See NOTE] Fixed a bug where salvage was not returning the correct amount of materials for AXE items (thanks Zed-I)
+    [See NOTE] Added missing STRIPPED_WOOD entries to experience.yml for Woodcutting
+    [See NOTE] Added about 15-20 missing entries to experience.yml for coral to Herbalism
+    Fixed a bug where admin chat from console would fail to send (thanks OverCrave)
+    Reduced default XP values for DEAD_* coral plants from 30 -> 10
+    Updated hu_HU locale (thanks andris155)
+
+    NOTE: These bugfixes were related to default config values, to receive these changes you can either delete experience.yml, treasures.yml and salvage.vanilla.yml to generate new ones or make the necessary edits.
+    This is what the files should look like after being edited.
+    Experience Correct Default Config - https://paste.gg/p/anonymous/ff695df1417e4232957a3d176fd14ed4
+    Salvage Correct Default Config - https://paste.gg/p/anonymous/c4eb2f4e66ed444e872021051760f3be
+    Treasures Correct Default Config - https://paste.gg/p/anonymous/b0120210f8c149958ca0303c68c19ebd
+
+Version 2.1.45
+    mcMMO will now check to see if the server version is incompatible and inform server admins on how to fix the problem.
+
+Version 2.1.44
+    Fixed a NPE with Alchemy brewing
+
+Version 2.1.43
+    Fixed a bug that would result in players being told they they failed to salvage enchantments when in reality they succeeded.
+
+Version 2.1.42
+    Fixed McMMOPlayerNotFoundException being thrown instead of null
+    (API) UserManager.getPlayer() returns null again (oopsie)
+    Added new perk permission node `mcmmo.perks.bypass.salvageenchant` - guarantees full enchantment return for Salvage
+    Added alternative permission node `mcmmo.perks.bypass.repairenchant` - guarantees full enchantment return for Repair
+    Added new wildcard perk `mcmmo.perks.bypass.*` and `mcmmo.perks.bypass.all` (either of these will grant all new mcmmo.perks.bypass perk permissions)
+
+    NOTE: Sorry about that, when trying to improve Bungee Cord compatibility I made a big oopsie!
+    NOTE: Repair's new perk permission works in the exact same way as mcmmo.bypass.arcanebypass, bypass perk permissions will all eventually be moved to `mcmmo.perks.bypass`
+    NOTE: Expect perk permissions to all be moved to `mcmmo.perks.X` in the near future
+
+Version 2.1.41
+    Fixed NullPointerException errors when trying to grab PlayerProfiles for players who have not loaded
+    Added new locale string Profile.PendingLoad
+    Added new locale string Commands.Database.CooldownMS
+    Fixed a display error preventing the remaining time on /mcrank from being shown if it was on cooldown
+
+Version 2.1.40
+    (API) mcMMO will now return null in all cases for UserManager.getPlayerProfile() if they have not been loaded yet
+    (API) Roll stores exploit data in AcrobaticsManager now
+    Added new locale string "Profile.Loading.FailureNotice"
+    Added new locale string "Profile.Loading.FailurePlayer"
+    mcMMO no longer gives up forever if a player profile fails to load and the player is still online
+    mcMMO will attempt to save a profile up to 10 times now, previously it would only try one time.
+    Fixed an ArrayIndexOutOfBounds error with Party Chat
+    Player data for mcMMO is now loaded 3 seconds after a player connects in order to give any ongoing save tasks from other servers a small grace period to finish. This will mostly be useful to Bungee servers.
+
+NOTES: I received reports from some users saying that saving and loading was failing could fail and not recover, I have implemented some fail safes to greatly reduce the the odds of that happening.
+
+Version 2.1.39
+    Salvaging an item should now only play the item break sound (was playing the anvil sound simultaneously before)
+    Fixed bug where Tall_Grass was not giving full XP
+    Added Tall_Seagrass and Seagrass to experience.yml under Herbalism (update your configs)
+
+    NOTE: This is what your herbalism section in experience.yml should look like - https://paste.gg/p/anonymous/d5b03bd56e8442f2836f8a954d2974de
+Version 2.1.38
+    Roll XP cooldown down from 60 seconds to 10
+    Updated pt_BR localization (thanks FabioZumbi12)
+    NOTE: The XP Cooldown will be configurable in 2.2 which is nearing the finish line
+
+Version 2.1.37
+    Fixed a potential IndexOutOfBoundsException when informing a disconnected player that their Blast Mining was off CD
+    Updated hu_HU locale (thanks andris)
+    
+Version 2.1.36
+    Updated German locale (Thanks OverCrave)
+    Fixed a bug preventing Villagers from giving combat XP
+    The /mcnotify command will now squelch almost all chat messages or action bar notifications sent to the player from mcMMO
+    mcMMO will now remind players on an hourly basis that they are are not receiving notifications from mcMMO if they have run the mcnotify command and toggled squelch mode
+    Added a new setting to advanced.yml "Feedback.PlayerTips", when set to true this will allow mcMMO to send periodic helpful messages to players, currently this only affects mcnotify reminders.
+
+Version 2.1.35
+    Readded the detonator config option
+
+    NOTE: I decided to make the detonator configurable again because 2.2 is some ways off. Sorry for the inconvenience.
+    NOTE: Pickaxes are now usable for blast mining, this is in addition to the detonator that you can specify in the config. This will be more configurable in the upcoming 2.2 update.
+
+Version 2.1.34
+    Added Llama to taming XP tables
+    Added Parrot to taming XP tables
+    Pickaxes are now used to activate Blast Mining instead of Flint
+    The detonator for Blast Mining is no longer configurable
+    Fixed a bug where Blast Mining did not show cooldown length correctly
+
+    NOTE: You'll have to add these entries in yourself, this is what it should look like: https://paste.gg/p/anonymous/aadbcfde3eb3470fb13caebde4065a03
+    Alternatively you can delete the experience config file to generate a new one
+
+Version 2.1.33
+    Renamed "Skills.Acrobatics.Prevent_AFK_Leveling" to "ExploitFix.Acrobatics"
+    ExploitFix.Acrobatics when set to false allows gaining XP in Acrobatics freely with no anti-grind measures
+    NOTE: The anti-grinding/exploit stuff is fully configurable in update 2.2 coming soon, this hotfix is to hold you over until that update comes out.
+
+Version 2.1.32
+    Completely removed Fireworks from mcMMO because they lag
+    Added 'General.AprilFoolsEvent' setting to config.yml to turn off April Fools
+    NOTE: April Fools event has been in mcMMO for a long time, I did not write it so I didn't know it spawned fireworks like crazy.
+
+Version 2.1.31
+    Fixed a bug where certain SubSkills did not properly send unlock or rank up notifications
+    Fixed a bug where unlock notifications would send simultaneously for a specific skill (still happens if mmoedit changes all skill levels on a player at once)
+    Fixed a bug where mmoedit triggered notifications for skills already gained
+    Fixed NPE with grabbing offline player skill ranks through certain API methods (thanks Ineusia)
+    Updated German language locale (thanks OverCrave)
+
+Version 2.1.30
+    Fixed double drops behaving oddly
+    Double_Drop config table has been renamed to Bonus_Drops, this is to jankily auto-update everyones config
+    DoubleDrop config tables now must contain all things that can possibly be doubled, such as the Ore block, the ore itself, etc.
+    Added the following items to the Bonus_Drops tables for Mining: Coal, Diamond, Emerald, Glowstone_Dust, Iron_Ingot, Lapis_Lazuli, Nether_Quartz, Redstone, Cobblestone
+    Added the following items to the Bonus_Drops tables for Herbalism: Beetroot, Carrot, Cocoa_Beans, Melon_Slice, Potatoe
+    Added the following items to the Bonus_Drops tables for Woodcutting: Birch_Wood, Spruce_Wood, Jungle_Wood, Dark_Oak_Wood, Oak_Wood, Acacia_Wood
+
+    NOTE: You don't need to update your configs for this one unless you had custom entries in the Double_Drop tables, the renaming of the key will auto-insert default values and give everyone correct defaults
+    NOTE: I'm gonna have to blame Bukkit on this one, several API methods I used are actually unfinished and kind of janky. So I hacked something together to make them work.
+
+Version 2.1.29
+    Fixed a bug where double drops and triple drops were not activating
+
+Version 2.1.28
+    Fixed a bug where Archery could not gain XP
+
+Version 2.1.27
+    Fixed an exploit that allowed players to duplicate torches, and rails
+
+Version 2.1.26
+    Added new scaling damage buffs to all existing Combat Skills
+    Added a new subskill named Stab to Swords
+    Fixed a bug where Berserk was not adding 50% damage to attacks
+    Changed how Iron Arm damage is calculated (Rank 1 now effectively gives twice the damage bonus it used to, higher ranks have more damage)
+
+    NOTE: Combat skills will be completely configurable in the upcoming 2.2 update, be patient <3
+
+    New Permissions
+            - mcmmo.ability.unarmed.unarmedlimitbreak
+            - mcmmo.ability.axes.axeslimitbreak
+            - mcmmo.ability.archery.archerylimitbreak
+            - mcmmo.ability.swords.swordslimitbreak
+            - mcmmo.ability.swords.stab
+
+    Notes:
+    The new Limit Break subskills are intended to make Prot IV players less tanky and for you to feel more powerful for having high skill level.
+    Limit Break has 10 ranks, each rank gives 1 extra RAW damage, this is damage before reductions from armor and enchantments. The net result is you deal about 50% more damage with an end game skill compared to before.
+    With these new changes, most skills can 2 shot normal diamond armor, and it takes about 5 hits to kill someone in Prot IV Diamond Armor.
+    I'm not sure everyone will like these changes, the net result is players are a lot easier to kill now, whereas before you could take quite a beating before getting killed.
+    I collected several sets of data before making these changes, including damage to player with and without prot 4 diamond armor, damage to those players with and without enchanted weapons, damage with and without leveling your skills, and combinations of the previously mentioned things.
+
+Version 2.1.25
+    Shake now has an upper limit of damage (10) - Will be configurable in 2.2 which is coming in the near future
+    Rank 1 of Catalysis & Concoctions are now available at level 0 by default (update skillranks.yml or delete it to regen a new one)
+    NOTE: The change to shake was to make mcMMO more compatible with plugins that spawn entities with large amounts of HP
+
+Version 2.1.24
+    Fixed an exploit where you could clone inventories
+
+Version 2.1.23
+    Fixed a bug with Double Drops for Mining (Update your configs instructions below)
+    Fixed a 7 year old bug where damage in mcMMO from SkillBs was potentially getting reduced by damage reduction TWICE
+    Fixed a bug where killing entities with Rupture would not properly credit you as the killer
+    Fixed a bug where Serrated Strikes was applying Rupture twice
+    Players will now be ejected from Minecarts if they cast their fishing rod (anti-afk)
+    Many nerfs to Rupture, its now much more reasonable and not very useful against Protection IV opponents
+    Rupture's strength is now related to your equipped Sword
+    Rupture will no longer be applied if the target is blocking, this doesn't prevent existing bleed damage from occurring though.
+    Wolf's Rupture has strength equivalent to a Stone Sword
+    Only Diamond swords will have bonus rupture damage at Rank 4
+    Rupture damage is cut in half for weapons below Diamond in quality, if the weapon is wooden, the damage is cut in half again.
+    Swords below Diamond quality will have their tick duration drastically reduced
+    Rupture damage is reduced by 25% on players if they are wearing Full Armor (can be any type)
+    Note: You'll need to add these entries to your config.yml manually, or wait for the upcoming config update where this will be fixed for you automatically.
+    NOTE: Here's what your Double_Drop entries in Config.yml for Mining should look like
+        https://paste.gg/p/anonymous/dcd06f1215844311b4f2225f200090d1
+    IMPORTANT: Version 2.1.22 which came before this had a similar fix for Herbalism, instructions on how to fix your Herbalism Double Drops can be found here
+        https://www.spigotmc.org/resources/official-mcmmo.64348/update?update=269868
+    NOTE: Due to the nature of these fixes, Fortune enchants now work with Double/Triple drops
+
+Version 2.1.22
+    Less aggressive spam click protection on Fishing
+    Updated Hungarian file for missing entries related to Fishing messages (credit: andris155)
+    Added all missing flowers to Double Drop tables for Herbalism
+    Fixed bug where Repair Mastery was calculating player skill level incorrectly when determining bonuses
+    Fixed Double Drop entries for all farming crops for Herbalism
+    It no longer requires seeds to replant crops if you are harvesting crops with a hoe (will still consume seeds if you aren't)
+    NOTE: You'll need to add these entries to your config.yml manually, or wait for the upcoming config update where this will be fixed for you automatically.
+    NOTE: Here's what your Double_Drop entries in Config.yml for Herbalism should look like: https://paste.gg/p/anonymous/8d8db4ac69bd495fa48a7f5190484c5e
+
+Version 2.1.21
+    Improved anti-farm/anti-grinding mechanics for Rolling
+    When you gain XP from Rolling there is a cooldown period (60~ seconds) for gaining XP again
+    This XP cooldown period extends if players are taking fall damage within the cooldown period
+        NOTE: Roll already has a few built in measures to prevent XP grinding / abuse, those are still the same.
+        NOTE: Rolls still happen in the cooldown period, you just won't gain XP.
+
+Version 2.1.20
+Added Hungarian localization (Locale code: hu_HU) (thanks andris155)
+Players can now fish in the same spot about 3 times before mcMMO will mark the area as being over-fished (over-fishing is to prevent abuse)
+Added a toggle to turn off the fishing exploit detection to experience.yml "ExploitFix.Fishing"
+    Note: The new config update is coming soon and will use a different setting, putting this out as a band-aid fix for people that don't like the new fishing exploit prevention stuff
+Added a message to warn players that their next fishing attempt will result in over-fishing (Locale: Fishing.LowResources)
+
+Version 2.1.19
+    Greatly Improved Fishing AFK/Exploit Detection
+    Fixed a bug where Fishing AFK detection did not work on a new exploit
+    Certain exploits for Fishing now result in players losing small amounts of hunger and durability
+    Players who get detected by Fishing's anti-exploit measures will no longer get vanilla rewards from Minecraft
+        **Note: Previously if mcMMO detected you abusing Fishing it just switched you over to vanilla Minecraft fishing rewards, this change is to help server admins who don't want players to get any kind of reward from AFK fishing
+    Fishing now drops several hints to players if they are triggering the exploit detection
+        **Note: Not all types of exploit detection will warn players, this is just to prevent legitimate fishers from being confused by the aggressive exploit detection.
+    Added messages to warn players about fishing in the same spot (Locale: Fishing.Scarcity)
+    Added messages to warn players who exploit in order to catch fish unusually fast (Locale: Fishing.Scared)
+    Added messages to warn players about casting the fishing rod too often (Locale: Fishing.Exhausting)
+
+Version 2.1.18
+    You will need to add Kelp to your experience.yml file for this fix to be fully functional
+    Breaking Kelp will now properly count its XP
+    Added "Kelp" to experience.yml (Kelp is actually made up of two blocks mixed together)
+    It is recommended that Kelp and Kelp_Plant have the same XP value in experience.yml
+    mcMMO will now calculate XP for plants that are taller than naturally allowed (Cactus above 3 block height, etc)
+
+Version 2.1.17
+    Fixed a logic error that resulted in Drowned giving no XP
+    Fixed a bug that resulted in mob spawner entities to not be marked for no xp after being transforming into Drowned
+
+Version 2.1.16
+    Breaking Kelp should now count the whole plant for XP
+    Spawned Mobs that are not supposed to award XP will no longer reward XP once transformed (ie: drowned)
+
+Version 2.1.15
+    Fixed a bug where a max rank of Fuel Efficiency would cause its benefits to be lost
+
+Version 2.1.14
+    Added a config option to toggle double drops for Silk Touch pickaxes (advanced.yml "Skills.Mining.DoubleDrops.SilkTouch"
+    Mycelium removed from Woodcutting XP tables (because its soil!)
+    Kelp added to Herbalism XP tables
+    mcMMO now flags blocks moved by piston as not natural to prevent automated XP farms
+    Fixed a bug where Fuel Efficiency was way too good
+    Fixed a display issue with Fisherman's Diet
+    Fuel Efficiency now uses the rank system
+    Removed Fuel Efficiency config options in advanced.yml
+    Added Tropical Fish, Raw Cod, Raw Salmon to the list of foods that benefit from Fisherman's Diet
+
+Version 2.1.13
+    Fixed a bug where Archery's Arrow Retrieval was using the wrong permission node
+
+Version 2.1.12
+    Salvage config entries are no longer case sensitive
+    Fixed a bug where Fishing was not rewarding vanilla XP orbs
+
+Version 2.1.11
+    Fixed a bug where Rupture was using the wrong permission node (new permission node: mcmmo.ability.swords.rupture)
+
+Version 2.1.10
+    Fishing command did an oopsie
+    Endstone now gives the same XP as Stone (update your experience.yml)
+
+Version 2.1.9
+    Fixed a bug where grabbing the version of WG would throw classnotdefined errors
+
+Version 2.1.8
+    mcMMO now checks for WG 7 before attempting to use the WG API
+    Made some optimizations for our WG integration
+    Fixed a bug where Bite chance for Master Angler was displaying too many decimal places
+    Fixed a bug where Abilities didn't check for permission nodes before activating
+    MaxBonusLevel now has specific entries for Standard and Retro in advanced.yml
+    MaxBonusLevel for Critical Strikes changed from 75/750 to 100/1000
+    MaxBonusLevel of Dodge changed from 80/800 to 100/1000
+    MaxBonusLevel of Rupture changed from 20/200 to 100/1000
+    MaxBonusLevel of Counter Attack changed from 60/600 to 100/1000
+
+Version 2.1.7
+    Fixed an almost 6 year old bug where Salvage materials did not have a defined material count so they defaulted to 2 (which could lead to shovels giving back more diamonds than normal)
+    Added spam detection for Unarmed's bonus damage and disarm
+    Corrected an error where master angler for retro only required level 150 instead of 500 (update your skillranks.yml)
+    Fixed a bug where Players could see hidden party members in the party member listings
+    (API) Added addXpFromBlocks to ExperienceAPI to help make adding XP for a player easier
+    (API) Added addXpFromBlocksBySkill to ExperienceAPI to help make adding XP for a player easier
+    (API) Added addXpFromBlock to ExperienceAPI to help make adding XP for a player easier
+    (API) Added addXpFromBlockBySkill to ExperienceAPI to help make adding XP for a player easier
+
+Version 2.1.6
+    Fixed a bug where Arcane Salvage could never fail
+    Recolored some lines in the locale related to failure from white to red
+    Fixed a bug where Salvage was giving back too many resources
+    SubSkillFailure renamed to SubSkillFailed in config.yml
+    SubSkillFailed now sends copies to chat by default
+    SubSkillFailed no longer sends messages to the action bar by default
+
+Version 2.1.5
+    mcMMO no longer ignores cancelled events relating to the player left or right clicking
+
+Version 2.1.4
+    Fixed a bug where Alchemy didn't gain XP
+    Fixed a bug where Archery gained XP from mob spawned entities
+    Fixed a display bug with Roll on /acrobatics command
+    Fixed a display bug for bite chance on Fishing
+    Fixed a display bug for treasure drop chances on Fishing
+    Fixed a display bug for Arcane Forging on Repair
+    Fixed a display bug for Super Repair on Repair
+    Fixed a display bug for Repair Mastery on Repair
+    Fixed a display bug for Second Smelt on Smelting
+    Repair Mastery now uses a rank system
+    Super Repair now uses a rank system
+    Changed the stat for bite chance to be more clear that its additive chance
+    Fixed Styling for the /salvage command
+    Temporarily disabled Flux Mining
+    Removed XP from entities that target endermite to prevent easy exploitation (Credits to TheBentoBox for the tip!) [Can be turned off in experience.yml]
+    Fixed a bug where static chance skills like Arcane Salvage were using incorrect calculations for success
+    Advanced Salvage now uses a rank system
+    Arcane Salvage now goes by your rank to determine the maximum amount of materials salvaged and is no longer percentage based
+    Fixed a bug where Iron Arm was checking for Iron Grip to be unlocked instead of itself
+    (Plugin Compatibility) mcMMO no longer ignores cancelled block place events (this is to prevent XP gains from placed blocks)
+    (Plugin Compatibility) mcMMO now ignores cancelled events relating to the player left or right clicking
+    (Locale) Changed the string for "Salvage.Ability.Bonus.1" to fit the new material recovery mechanics of Salvage
+    (Config) Added a toggle for the new endermite enderman xp farm fix in experience.yml "ExploitFix.EndermanEndermiteFarms"
+    (Config) Cleaned up some leftover 'unlocklevel' settings, this stuff is now handled in skillranks.yml
+    (Config) Removed Salvage.MaxPercentage
+    (Config) Removed Salvage.MaxPercentageChance
+    (Config) Added Salvage.ArcaneSalvage.MaxBonusLevel
+    (Config) Added Salvage.ArcaneSalvage.MaxChance
+
+Version 2.1.3
+    Temporarily removed the unarmed no-item pickup feature until its fixed
+
+Version 2.1.2
+    (Compatibility) mcMMO now deals custom damage type for all damage sources to be more compatible with other plugins (such as anti-cheat)
+    (Perks) Fixed a bug where the Lucky perk wasn't adding to success
+    (Skills) mcMMO will now listen to cancelled events to remove our temporary enchantments from tools
+    (Skills) Fixing a bug where Shake didn't calculate success correctly
+    (Skills) Fixed a bug where Arcane Forging didn't calculate success and failure correctly
+    (Skills) Fixed a bug where Salvage didn't calculate success and failure correctly
+    (Skills) Fixed a bug where Flux Mining didn't calculate success correctly
+    (Skills) Fixed a bug where Shake didn't calculate correctly
+    (Skills) Fixed a bug where Pummel didn't calculate correctly
+    (Skills) Tree Feller now works on Mushroom Stems
+    (Skills) Fixed a bug where magic chance would show as null
+    (Skills) Fixed a bug where Trap percentages were added to Fishing even though they no longer exist
+    (Skills) Magic Hunter now uses a rank system
+    (Skills) Fixed a bug where Magic Hunter would work without treasure hunter
+    (Skills) As long are you are empty handed mcMMO will no longer put items into your hands
+    (Skills) Improved the styling on /smelting
+    (Skills) Iron Arm Style can now reach a bonus damage of 10 (up from 8)
+    (Skills) Iron Arm Style now uses a rank system
+    (Skills) Iron Grip now uses a rank system
+    (Skills) Disarm now uses a rank system
+    (Skills) Arrow Deflect now uses a rank system
+    (Skills) Flux Mining is now a passive effect when you mine ore instead of requiring a special pickaxe
+    (Skills) Removed the Flux Mining mcMMO Pickaxe Item
+    (Style) Locked skills now are styled differently in the skill command display
+    (Experience) Phantoms have been added to the default experience.yml with a value of 4.0 (update your config!)
+    (Experience) Default XP value for witch set to 0.1 instead of 0.0
+    (Experience) Default XP value for ender dragon set to 1.0 instead of 0.0
+    (Style) Added @ symbol styling for hover tooltips to the locale
+    (Style) Added the skill names in the skill commands display to the locale so it can now be edited and styled
+    (Experience) Renamed Grass to Grass_Block in treasures.yml to allow grass to give items again (update your configs manually or delete to regen)
+    (Experience) Wood blocks now give XP and are affected by Tree Feller (6 sided bark blocks)
+    (API) Moved XPGainReason from skills to experience package
+    (API) Added XpGainSource for tracking sources of XP
+    (API) You can now specify XpGainSource when adding xp to players
+    (Config) The Extra Stats option for XP bars now overrides the setting for updating XP bars every time XP is gained
+    (Config) Added an option for Party XP gains to not update XP bars
+    (Config) Added an option for Passive XP gains to not update XP bars (smelting/brewing)
+    (Config) Added warnings if mcMMO finds a MaxBonusLevel of 0 for any skill that incorporates RNG
+    (Config) Removed config options for Iron Arm
+    (Config) Removed the options related to the Flux Mining Item
+    (Config) Second Smelt has a max activation chance of 50% instead of 100% (you can update your configs or gen new ones to get this change)
+
+Version 2.1.1
+    = Fixed an issue where excavation wasn't using the correct permission node
+    = Added protection against AFK fishing
+    = Acrobatics now uses much better anti-exploit detection
+
+Version 2.1.0
+ + mcMMO now features XP bars! Configurable in experience.yml
+ + Locale files now support & codes for colors and formatting!
+ + Prevented exploits involving blocks made from entities (snowmen, etc..)
+ + Added JSON integration to all Skill Commands
+ + Added config setting to enable or disable old mcMMO skill scaling (General.RetroMode) this is on by default for existing installs
+ + You can now disable specific skills in coreskills.yml without the need for permissions
+ + Added links to mcMMO related websites to various commands
+ + Certain elements of mcMMO's UI have been restyled
+ + Added the tagline "Overhaul Era" to various locations until 3.0.0 comes out
+ + You can now disable mcMMO completely for specific worlds via world_blacklist.txt in /plugins/mcMMO/
+ + (WorldGuard) mcMMO now supports worldguard, you can use the flags "mcmmo" and "mcmmo-xp" on regions (they default to on unless otherwise specified)
+ ! (Scoreboards) Scoreboards are now disabled by default, I don't like them. You can turn them back on in config.yml
+ + (Sounds) Rolling now plays a sound (Graceful Roll has a different sound :) )
+ + (Sounds) Activating Super abilities plays a sound (other plays can hear this)
+ + (Sounds) Skill Unlock Notifications have sounds
+ + (Sounds) Readying a tool for a super ability now plays a sound
+ + (Sounds) Bleed DOT now plays a sound
+ + (Experience) mcMMO now notifies you when you progress in a skill!
+ + (Experience) Coral (blocks) now give Mining XP
+ + (Experience) Coral (plants) now give Herbalism XP
+ + (Experience) Blue Ice now gives Mining XP
+ + (Experience) Dolphins now give combat XP
+ + (Experience) Drowned mobs now count towards combat XP
+ + (Experience) You can now set guaranteed minimum values for XP gained if diminishing returns are enabled, this value defaults to 5% (experience.yml)
+ + (Events) Starting an XP event will now use the title API (toggle this in advanced.yml)
+ + (Sound) Volume and Pitch of sounds can now be configured in the new sounds.yml file
+ + (MySQL) Added support for SSL for MySQL/MariaDB (On by default)
+ ! (Skills) Taming's Gore now uses Rupture Rank 1 for its DoT calculations
+ ! (Skills) Sword's Bleed has been renamed to Rupture
+ ! (Skills) Sword's Rupture no longer has an internal hard coded limit
+ ! (Skills) Sword's Serrated Strikes now uses your Rupture rank to determine the damage/ticks for its bleed effect.
+ ! (Skills) Sword's Rupture now ticks four times as fast
+ ! (Skills) Sword's Rupture now refreshes bleed duration instead of adding duration when applying bleed to the same target
+ ! (Skills) Sword's Rupture will now deal lethal damage
+ = (Skills) Fixed a bug where Rupture would apply an incorrect amount of bleed ticks
+ ! (Skills) Sword's Rupture now reaches its max proc chance at level 20 (200 in Retro)
+ ! (Skills) Sword's Rupture now has a max chance to proc of 33% instead of 70%
+ ! (Skills) Sword's Rupture now deals 50% more damage at above Rank 3 and can last much longer! The base damage for Bleed has been increased as well (update your advanced.yml admins)
+ ! (Skills) Sword's Rupture no longer triggers invincibility frames when damaging your opponent
+ = (Skills) Furnaces now give XP to the last person to modify their inventory instead of the first person to open them
+ + (Skills) Ability Lengths now have a default skill cap at which they stop increasing in length, configurable in advanced.yml (endurance perks extend this limit)
+ + (Skills) Added a new subskill to some skills 'Understanding The Art' this adds nothing new, but tracks benefits that increase together that seemed unrelated, which was previously a bit obfuscated.
+ + (Skills) Tool alerts now are sent to the Action Bar
+ + (Skills) Super Ability activation alerts are now sent to the Action Bar
+ + (Skills) Certain Skill messages are now sent to the Action Bar
+ + (Skills) Added some missing information to skill stats
+ + (Config) Skill Rank requirements are now defined in skillranks.yml you cannot add or remove ranks from this file
+ + (Config) Added option to use SSL for MySQL in config.yml
+ + (Config) Added option to disable the new URL links to config.yml
+ + (Config) New config file added coreskills.yml
+ + (Config) Added rank settings for the new Woodcutting skill
+ + (Config) Added configurable parameters for the new Tree Feller
+ + (Config) Added retro toggle for Tree Feller
+ + (Config) Added toggle to disable all scoreboards
+ + (Chat) Added ability for admins to spy on party chat (off unless toggled on)
+ + (Commands) Added new info command /mmoinfo or /mcinfo
+ + (Commands) Added toggle command /mcchatspy
+ + (API) Added many missing SubSkills to SubSkillType class
+ + (Permissions) Added permission node mcmmo.commands.mcchatspy & mcmmo.commands.mcchatspy.others
+ + (Permissions) Added permission nodes for Harvest Lumber, Splinter, Nature's Bounty, and Bark Surgeon
+ + (Permissions) Added mcmmo.commands.mmoinfo for the new mmoinfo/mcinfo command
+ ! (Permissions) Call of the wild now uses mcmmo.ability.taming.callofthewild instead of mcmmo.ability.taming.callofthewild.all
+ + (Locale) Added locale strings for new Woodcutting abilities
+ + (Locale) Added locale strings for mcchatspy command
+ + (Locale) Added locale strings for JSON integration
+ + (Locale) Added locale strings for Taming's Pummel SubSkill
+ + (Locale) Added locale strings for Unarmed's Block Cracker SubSkill
+ - (Locale) Removed localizations with the following codes for being almost empty: id, HR_hr, et_EE, lv, lt, no, pl_PL, pt_PT, tr_TR
+ - (Config) Removed SkillShot's IncreaseLevel & IncreasePercentage (replaced by RankDamageMultiplier)
+ - (Config) Removed AxeMastery's MaxBonus & MaxBonusLevel (replaced by RankDamageMultiplier)
+ = (Events) Fixed bug where XP rate could be a negative number
+ = (Experience) Fixed a bug where you could set a players levels into the negative and bad things would happen
+ = (Plugin Compatibility) mcMMO now fires new custom events relating to changes it makes to player scoreboards, plugin authors can listen to these events to improve compatibility
+ = (Items) Chimaera Wing now tracks cooldowns between sessions for players (no more disconnect abuse)
+ = (Skills) Added missing mushroom blocks to experience.yml defaults
+ = (Skills) Tridents will no longer be considered unarmed
+ = (MySQL) You can now inspect offline players
+ = (MySQL) When converting from MySQL to flatfile mcMMO will now properly include all users in the conversion process
+ = (Commands) '/mcMMO help' no longer displays the other/special commands category to players lacking permissions
+ + (Party) Parties can now have size limits (configurable in config.yml), party size is unlimited by default
+ + (Party) You can now turn on Friendly Fire for parties in config.yml
+ + (Debug Stick) The Debug stick can now tell you about properties of a block related to Excavation
+ ! (Deaths) Fixed the bug where mob names would be replaced by hearts
+ ! (Experience) The XP values of fish are now based on their rarity and have been drastically changed
+ ! (Experience) Skills now start at level 1 (configurable in advanced.yml)
+ ! (Item) Improved some of the messages sent to the player regarding the Chimaera Wing
+ ! (Party) Party member list will only include members of the party that you can see (aren't vanished)
+ ! (Skills) Excavation Treasure Hunter is renamed to Archaeology
+ ! (Skills) Swords no longer require blocking with a shield to trigger counter attacks
+ ! (Skills) Stripping wood and right clicking on stripped wood will no longer ready your Axe
+ ! (Skills) Some skill level rank requirements have changed
+ ! (Skills) Green Thumb now uses a rank system
+ ! (Skills) Farmer's Diet & Fisherman's Diet now use a rank system
+ ! (Skills) Fixed an edge case bug where Blast Mining wouldn't inform the player that it was on cooldown
+ ! (Skills) mcMMO skills will now be on a scale from 1-100 instead of 0-1000 (for existing mcMMO installs this is opt-in and off by default)
+ ! (Skills) Skill Super Powers now use a rank system, almost all of them unlocking first at level 10
+ ! (Skills) Acrobatics' Roll exploit detection was tweaked to still allow for Roll to trigger even if it rewards no XP
+ ! (Skills) Acrobatics' Roll & Gracefull Roll are now considered the same skill (both mechanics are still there)
+ ! (Skills) Woodcutting's Double Drop subskill is now named Harvest Lumber
+ ! (Skills) Archery's Skill Shot now uses a rank system
+ ! (Skills) Swords' Bleed now uses a rank system
+ ! (Skills) Swords' Counter Attack now uses a rank system
+ ! (Skills) Axe's Axe Mastery now uses a rank system
+ ! (Skills) Axe's Impact now uses a rank system
+ ! (Skills) Herbalism's Farmer's Diet now uses a rank system
+ ! (Skills) Herbalism's Green Thumb now uses a rank system
+ ! (Skills) Shake now uses a rank system
+ ! (Skills) Flux Mining now uses a rank system
+ ! (Skills) Removed traps from fishing
+ ! (Skills) Dodge now uses a rank system
+ ! (Skills) Arrow Retrieval now uses a rank system
+ ! (Skills) Axes' Critical Strikes now uses a rank system
+ ! (Skills) Axes' Greater Impact now uses a rank system
+ ! (Skills) Taming's Beast Lore now uses a rank system
+ ! (Skills) Taming's Gore now uses a rank system
+ ! (Skills) Taming's Call of the Wild now uses a rank system
+ ! (Skills) Taming's Pummel now uses a rank system
+ ! (Kraken) Removed everything involving the kraken
+ = (Skills) Shake now sends custom damage types for better nocheat compat
+ ! (Config) Unarmed.IronArm in advanced.yml is now Unarmed.IronArmStyle
+ ! (Config) Unarmed.Deflect in advanced.yml is now Unarmed.ArrowDeflect
+ ! (Config) Swords.Counter in advanced.yml is now Swords.CounterAttack
+ ! (Config) Archery.Retrieve in advanced.yml is now Archery.ArrowRetrieval
+ ! (Config) Axes.CriticalHit in advanced.yml is now Axes.CriticalStrikes
+ ! (Config) Archery's Skill Shot now uses RankDamageMultiplier for its damage bonus calculations
+ ! (Config) Axe's Axe mastery now uses RankDamageMultiplier for its damage bonus calculations
+ ! (Permissions) Replaced the old Double Drop permission node for woodcutting with a new Harvest Lumber permission node
+ ! (Permissions) Fast Food Service permission node renamed to mcmmo.ability.taming.fastfoodservice
+ ! (Permissions) Counter Attack permission node renamed to mcmmo.ability.swords.counterattack
+ ! (Permissions) Arrow Deflect permission node renamed to mcmmo.ability.unarmed.arrowdeflect
+ ! (Permissions) Iron Arm Style permission node renamed to mcmmo.ability.unarmed.ironarmstyle
+ ! (Permissions) Remove all mob health bar permissions, this is no longer a per-player setting.
+ ! (Commands) Removed the mobhealthbar command, this is no longer a per-player setting.
+ ! (Locale) The descriptions of a few skills have changed
+ ! (Locale) Removed redundant information from some skill names and descriptions en_US (other locales will need to be updated)
+ ! (Locale) SubSkill locale keys are now located at {ParentSkill}.SubSkill.SubSkillName
+ ! (Locale) Super Abilities no longer have (ABILITY) in their Skill.Effect strings
+ ! (API) mcMMO is now built against Spigot-API instead of Bukkit
+ ! (API) Moved a lot of methods from SkillCommand to SkillUtils
+ ! (API) SkillType is now PrimarySkillType
+ ! (API) SecondarySkill is now SubSkillType
+ ! (API) AbilityType is now SuperAbilityType
+ ! (API) SecondaryAbilityEvent is now SubSkillEvent
+ ! (API) SubSkillType has had many helpful methods added to it
+ ! (API) GREEN_THUMB_PLANT & GREEN_THUMB_BLOCK are replaced by GREEN_THUMB
+ ! (Code) Refactored some unreadable code relating to SecondaryAbilityType activation in SkillUtils
+
+Version 2.0.0
+ = Fixed an interaction between Tree Feller and Stripped Wood
+ ! Fireworks no longer fire by default for ability activation/deactivation
+ ! Website has been changed and the MOTD string relating to it reflects this
+ ! Discord link added to mcMMO command
+ ! Updated misc strings relating to mcMMO
+
 
 Version 1.5.05-SNAPSHOT
 

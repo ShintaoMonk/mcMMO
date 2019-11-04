@@ -1,16 +1,5 @@
 package com.gmail.nossr50.commands.party.alliance;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.bukkit.ChatColor;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabExecutor;
-import org.bukkit.entity.Player;
-import org.bukkit.util.StringUtil;
-
 import com.gmail.nossr50.config.Config;
 import com.gmail.nossr50.datatypes.party.Party;
 import com.gmail.nossr50.datatypes.party.PartyFeature;
@@ -19,8 +8,17 @@ import com.gmail.nossr50.locale.LocaleLoader;
 import com.gmail.nossr50.party.PartyManager;
 import com.gmail.nossr50.util.commands.CommandUtils;
 import com.gmail.nossr50.util.player.UserManager;
-
 import com.google.common.collect.ImmutableList;
+import org.bukkit.ChatColor;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabExecutor;
+import org.bukkit.entity.Player;
+import org.bukkit.util.StringUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class PartyAllianceCommand implements TabExecutor {
     private Player player;
@@ -36,6 +34,12 @@ public class PartyAllianceCommand implements TabExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (CommandUtils.noConsoleUsage(sender)) {
+            return true;
+        }
+
+        if(UserManager.getPlayer((Player) sender) == null)
+        {
+            sender.sendMessage(LocaleLoader.getString("Profile.PendingLoad"));
             return true;
         }
 
@@ -128,8 +132,8 @@ public class PartyAllianceCommand implements TabExecutor {
     private void displayMemberInfo(McMMOPlayer mcMMOPlayer) {
         List<Player> nearMembers = PartyManager.getNearMembers(mcMMOPlayer);
         player.sendMessage(LocaleLoader.getString("Commands.Party.Alliance.Members.Header"));
-        player.sendMessage(playerParty.createMembersList(player.getName(), nearMembers));
+        player.sendMessage(playerParty.createMembersList(player));
         player.sendMessage(ChatColor.DARK_GRAY + "----------------------------");
-        player.sendMessage(targetParty.createMembersList(player.getName(), nearMembers));
+        player.sendMessage(targetParty.createMembersList(player));
     }
 }

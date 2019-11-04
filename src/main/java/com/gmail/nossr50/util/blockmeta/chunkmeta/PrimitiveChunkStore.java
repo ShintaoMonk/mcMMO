@@ -1,14 +1,13 @@
 package com.gmail.nossr50.util.blockmeta.chunkmeta;
 
+import com.gmail.nossr50.util.blockmeta.ChunkletStore;
+import org.bukkit.Bukkit;
+import org.bukkit.World;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.UUID;
-
-import org.bukkit.Bukkit;
-import org.bukkit.World;
-
-import com.gmail.nossr50.util.blockmeta.ChunkletStore;
 
 public class PrimitiveChunkStore implements ChunkStore {
     private static final long serialVersionUID = -1L;
@@ -140,7 +139,7 @@ public class PrimitiveChunkStore implements ChunkStore {
                     try {
                         store[x][z][y] = temp[x][y][z];
                     }
-                    catch (Exception e) {}
+                    catch (Exception e) { e.printStackTrace(); }
                 }
             }
         }
